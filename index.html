@@ -188,6 +188,7 @@
 </div>
 </div>
 <div class="flex items-center gap-2 md:gap-3">
+<button onclick="document.getElementById('addClientModal').classList.remove('hidden')" class="bg-primary text-white text-xs font-bold px-3 py-2 rounded-lg hover:opacity-90 min-touch flex items-center justify-center gap-1 shadow-sm"><span class="material-symbols-outlined text-[1.1rem]">person_add</span> <span class="hidden sm:inline">Nuevo Cliente</span></button>
 <button class="p-2 text-slate-500 hover:bg-slate-50 dark:hover:bg-slate-800/50 rounded-md transition-all min-touch"><span class="material-symbols-outlined" data-icon="notifications">notifications</span></button>
 <button class="hidden sm:block p-2 text-slate-500 hover:bg-slate-50 dark:hover:bg-slate-800/50 rounded-md transition-all min-touch"><span class="material-symbols-outlined" data-icon="settings">settings</span></button>
 <div class="h-8 w-8 md:h-10 md:w-10 rounded-full bg-primary overflow-hidden ml-1 border border-outline-variant/30 shrink-0">
@@ -269,12 +270,12 @@
 <section class="w-full lg:col-span-6 p-4 md:p-8 overflow-y-auto">
 <!-- Feed Tabs -->
 <div class="flex items-center gap-1 border-b border-outline-variant/20 mb-6 overflow-x-auto no-scrollbar pb-1">
-<button class="px-4 md:px-5 py-3 text-sm font-semibold text-primary border-b-2 border-primary whitespace-nowrap min-touch">Actividad</button>
-<button class="px-4 md:px-5 py-3 text-sm font-medium text-on-surface-variant hover:bg-surface-container-high rounded-t-lg transition-colors whitespace-nowrap min-touch">Notas</button>
-<button class="px-4 md:px-5 py-3 text-sm font-medium text-on-surface-variant hover:bg-surface-container-high rounded-t-lg transition-colors whitespace-nowrap min-touch">Correos</button>
-<button class="px-4 md:px-5 py-3 text-sm font-medium text-on-surface-variant hover:bg-surface-container-high rounded-t-lg transition-colors whitespace-nowrap min-touch">Llamadas</button>
-<button class="px-4 md:px-5 py-3 text-sm font-medium text-on-surface-variant hover:bg-surface-container-high rounded-t-lg transition-colors whitespace-nowrap min-touch">Tareas</button>
-<button class="px-4 md:px-5 py-3 text-sm font-medium text-on-surface-variant hover:bg-surface-container-high rounded-t-lg transition-colors whitespace-nowrap min-touch">Reuniones</button>
+<button class="px-4 md:px-5 py-3 text-sm font-semibold text-primary border-b-2 border-primary whitespace-nowrap min-touch" data-tab-target="all">Actividad</button>
+<button class="px-4 md:px-5 py-3 text-sm font-medium text-on-surface-variant hover:bg-surface-container-high rounded-t-lg transition-colors whitespace-nowrap min-touch" data-tab-target="Notas">Notas</button>
+<button class="px-4 md:px-5 py-3 text-sm font-medium text-on-surface-variant hover:bg-surface-container-high rounded-t-lg transition-colors whitespace-nowrap min-touch" data-tab-target="Correos">Correos</button>
+<button class="px-4 md:px-5 py-3 text-sm font-medium text-on-surface-variant hover:bg-surface-container-high rounded-t-lg transition-colors whitespace-nowrap min-touch" data-tab-target="Llamadas">Llamadas</button>
+<button class="px-4 md:px-5 py-3 text-sm font-medium text-on-surface-variant hover:bg-surface-container-high rounded-t-lg transition-colors whitespace-nowrap min-touch" data-tab-target="Tareas">Tareas</button>
+<button class="px-4 md:px-5 py-3 text-sm font-medium text-on-surface-variant hover:bg-surface-container-high rounded-t-lg transition-colors whitespace-nowrap min-touch" data-tab-target="Reuniones">Reuniones</button>
 </div>
 <!-- Primary Action: Create Call Reminder -->
 <div class="mb-8">
@@ -309,9 +310,9 @@
 </div>
 </div>
 <!-- Feed Items -->
-<div class="flex flex-col gap-0">
+<div class="flex flex-col gap-0" id="activityFeed">
 <!-- Activity 1 -->
-<div class="relative pl-10 pb-10 border-l border-outline-variant/20 ml-4">
+<div class="relative pl-10 pb-10 border-l border-outline-variant/20 ml-4 feed-item" data-tab-category="Correos">
 <div class="absolute -left-[18px] top-0 w-9 h-9 bg-surface-container-lowest border border-outline-variant/20 rounded-full flex items-center justify-center shadow-sm">
 <span class="material-symbols-outlined text-primary text-[1.2rem]" data-icon="mail">mail</span>
 </div>
@@ -328,7 +329,7 @@
 </div>
 </div>
 <!-- Activity 2 -->
-<div class="relative pl-10 pb-10 border-l border-outline-variant/20 ml-4">
+<div class="relative pl-10 pb-10 border-l border-outline-variant/20 ml-4 feed-item" data-tab-category="Llamadas">
 <div class="absolute -left-[18px] top-0 w-9 h-9 bg-surface-container-lowest border border-outline-variant/20 rounded-full flex items-center justify-center shadow-sm">
 <span class="material-symbols-outlined text-orange-600 text-[1.2rem]" data-icon="call">call</span>
 </div>
@@ -344,7 +345,7 @@
 </div>
 </div>
 <!-- Activity 3 (Property Change) -->
-<div class="relative pl-10 pb-10 border-l border-outline-variant/20 ml-4">
+<div class="relative pl-10 pb-10 border-l border-outline-variant/20 ml-4 feed-item" data-tab-category="Actividad">
 <div class="absolute -left-[18px] top-0 w-9 h-9 bg-surface-container-lowest border border-outline-variant/20 rounded-full flex items-center justify-center shadow-sm">
 <span class="material-symbols-outlined text-blue-500 text-[1.2rem]" data-icon="refresh">refresh</span>
 </div>
@@ -359,7 +360,7 @@
 </div>
 </div>
 <!-- Activity 4 -->
-<div class="relative pl-10 pb-0 border-l-0 ml-4">
+<div class="relative pl-10 pb-0 border-l-0 ml-4 feed-item" data-tab-category="Tareas">
 <div class="absolute -left-[18px] top-0 w-9 h-9 bg-surface-container-lowest border border-outline-variant/20 rounded-full flex items-center justify-center shadow-sm">
 <span class="material-symbols-outlined text-green-600 text-[1.2rem]" data-icon="check_circle">check_circle</span>
 </div>
@@ -438,18 +439,107 @@
 </div>
 </div>
 </aside>
+<!-- Modulo: Añadir Cliente -->
+<div id="addClientModal" class="hidden fixed inset-0 z-[100] bg-slate-900/50 backdrop-blur-sm flex items-center justify-center p-4">
+    <div class="bg-white dark:bg-slate-900 rounded-2xl shadow-2xl w-full max-w-md p-6 border border-slate-200 dark:border-slate-800">
+        <div class="flex justify-between items-center mb-6">
+            <h2 class="text-lg font-bold text-slate-800 dark:text-white">Añadir Nuevo Cliente</h2>
+            <button onclick="document.getElementById('addClientModal').classList.add('hidden')" class="text-slate-400 hover:text-slate-600 transition-colors p-1"><span class="material-symbols-outlined leading-none">close</span></button>
+        </div>
+        <form id="addClientForm" class="flex flex-col gap-5">
+            <div>
+                <label class="block text-[0.6875rem] font-bold text-on-surface-variant/70 uppercase mb-1.5">Nombres y Apellidos</label>
+                <div class="relative">
+                    <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-[1.1rem]">person</span>
+                    <input type="text" required class="w-full bg-slate-50 dark:bg-slate-800 border-none rounded-xl py-3 pl-10 pr-4 text-sm focus:ring-2 focus:ring-primary/30 transition-shadow text-slate-800" placeholder="Ej. Juan Pérez">
+                </div>
+            </div>
+            <div>
+                <label class="block text-[0.6875rem] font-bold text-on-surface-variant/70 uppercase mb-1.5">Teléfono</label>
+                <div class="relative">
+                    <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-[1.1rem]">call</span>
+                    <input type="tel" required class="w-full bg-slate-50 dark:bg-slate-800 border-none rounded-xl py-3 pl-10 pr-4 text-sm focus:ring-2 focus:ring-primary/30 transition-shadow text-slate-800" placeholder="+51 999 888 777">
+                </div>
+            </div>
+            <div>
+                <label class="block text-[0.6875rem] font-bold text-on-surface-variant/70 uppercase mb-1.5">Correo Electrónico</label>
+                <div class="relative">
+                    <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-[1.1rem]">mail</span>
+                    <input type="email" required class="w-full bg-slate-50 dark:bg-slate-800 border-none rounded-xl py-3 pl-10 pr-4 text-sm focus:ring-2 focus:ring-primary/30 transition-shadow text-slate-800" placeholder="juan@ejemplo.com">
+                </div>
+            </div>
+            <div>
+                <label class="block text-[0.6875rem] font-bold text-on-surface-variant/70 uppercase mb-1.5">Ubicación del Domicilio</label>
+                <div class="relative">
+                    <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-[1.1rem]">location_on</span>
+                    <input type="text" required class="w-full bg-slate-50 dark:bg-slate-800 border-none rounded-xl py-3 pl-10 pr-4 text-sm focus:ring-2 focus:ring-primary/30 transition-shadow text-slate-800" placeholder="Ej. Av. Javier Prado Este 1234, Lima">
+                </div>
+            </div>
+            <div class="mt-2 flex gap-3 justify-end border-t border-slate-100 dark:border-slate-800 pt-5">
+                <button type="button" onclick="document.getElementById('addClientModal').classList.add('hidden')" class="px-5 py-2.5 rounded-xl text-sm font-semibold text-slate-600 hover:bg-slate-100 transition-colors min-touch">Cancelar</button>
+                <button type="submit" class="px-5 py-2.5 rounded-xl text-sm font-semibold text-white bg-primary hover:bg-primary/90 transition-colors shadow-sm min-touch flex items-center gap-2"><span class="material-symbols-outlined font-sm">save</span> Guardar Contacto</button>
+            </div>
+        </form>
+    </div>
+</div>
 </main>
 <script>
-    // Lógica para cambiar entre pestañas de Actividad
+    // Lógica del Formulario para Añadir Cliente
+    document.getElementById('addClientForm').addEventListener('submit', (e) => {
+        e.preventDefault();
+        alert('✨ Contacto guardado exitosamente. Los datos se han registrado correctamente en el CRM.\\n\\nLa vista principal se actualizará para reflejar al nuevo cliente.');
+        document.getElementById('addClientModal').classList.add('hidden');
+        e.target.reset();
+    });
+
+    // Lógica para cambiar entre pestañas de Actividad y filtrar contenido
     const tabs = document.querySelectorAll('.pb-1 > button');
+    const feedItems = document.querySelectorAll('.feed-item');
+    const activityFeed = document.getElementById('activityFeed');
+
     tabs.forEach(tab => {
         tab.addEventListener('click', (e) => {
+            // Estilos de activo
             tabs.forEach(t => {
                 t.classList.remove('text-primary', 'border-b-2', 'border-primary', 'font-semibold');
                 t.classList.add('text-on-surface-variant', 'rounded-t-lg', 'font-medium');
             });
             e.currentTarget.classList.add('text-primary', 'border-b-2', 'border-primary', 'font-semibold');
             e.currentTarget.classList.remove('text-on-surface-variant', 'rounded-t-lg', 'font-medium');
+            
+            // Lógica de filtrado
+            const target = e.currentTarget.getAttribute('data-tab-target');
+            let hasItems = false;
+
+            feedItems.forEach(item => {
+                if (target === 'all') {
+                    item.style.display = 'block';
+                    hasItems = true;
+                } else {
+                    if (item.getAttribute('data-tab-category') === target) {
+                        item.style.display = 'block';
+                        hasItems = true;
+                    } else {
+                        item.style.display = 'none';
+                    }
+                }
+            });
+
+            // Manejar vista vacía
+            let emptyState = document.getElementById('empty-feed-state');
+            if (!hasItems) {
+                if (!emptyState) {
+                    emptyState = document.createElement('div');
+                    emptyState.id = 'empty-feed-state';
+                    emptyState.className = 'text-center py-12 text-slate-400 flex flex-col items-center justify-center';
+                    emptyState.innerHTML = '<span class="material-symbols-outlined text-5xl mb-3 opacity-30" data-icon="inbox">inbox</span><p class="text-sm font-medium text-slate-500">No hay registros de ' + target + ' para mostrar.</p>';
+                    activityFeed.appendChild(emptyState);
+                }
+                emptyState.style.display = 'flex';
+                emptyState.querySelector('p').innerText = 'No hay históricos de ' + target + ' para este contacto.';
+            } else {
+                if (emptyState) emptyState.style.display = 'none';
+            }
         });
     });
 
@@ -470,10 +560,13 @@
         if (btn.innerText.trim() === '+ Añadir') {
             btn.addEventListener('click', () => {
                 const section = btn.parentElement.querySelector('h3').innerText;
-                const value = prompt('Ventana: Añadir registro vinculado a -> ' + section + '\\n\\nIngresa el identificador o nombre a asignar:');
-                if (value) {
-                    alert('✅ Exitoso: Se asoció "' + value + '" a ' + section);
-                }
+                const modal = document.getElementById('addClientModal');
+                
+                // Actualizamos el título del modal para que sea dinámico basado en dónde hicimos clic
+                modal.querySelector('h2').innerText = 'Añadir a ' + section.split(' ')[0];
+                
+                // Mostrar la ventana bonita
+                modal.classList.remove('hidden');
             });
         }
     });
