@@ -3,7 +3,7 @@
 <html class="light" lang="es"><head>
 <meta charset="utf-8"/>
 <meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0" name="viewport"/>
-<title>Registro de Contacto | Sarah Johnson | CRM Arquitectónico</title>
+<title>Registro de Contacto | Sarah Johnson | CRM Henry Curto</title>
 <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&amp;display=swap" rel="stylesheet"/>
 <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
@@ -147,7 +147,7 @@
 <button class="md:hidden p-2 min-touch" onclick="document.getElementById('mobile-nav').classList.toggle('hidden')">
 <span class="material-symbols-outlined" data-icon="menu">menu</span>
 </button>
-<span class="text-base md:text-lg font-bold tracking-tighter text-slate-900 dark:text-slate-50 whitespace-nowrap mr-2">CRM Arquitectónico</span>
+<span class="text-base md:text-lg font-bold tracking-tighter text-slate-900 dark:text-slate-50 whitespace-nowrap mr-2">CRM Henry Curto</span>
 <div class="hidden md:flex items-center gap-2">
 <a class="nav-item text-orange-900 dark:text-orange-200 font-semibold" href="#">
 <span>Contactos</span>
@@ -246,6 +246,18 @@
 <div class="group">
 <label class="text-[0.6875rem] font-bold text-on-surface-variant/70 block mb-1 uppercase">Teléfono</label>
 <div class="text-sm font-medium p-1 -ml-1 rounded-md transition-colors hover:bg-surface-container-high cursor-text">+51 987 654 321</div>
+</div>
+<div class="group">
+<label class="text-[0.6875rem] font-bold text-on-surface-variant/70 block mb-1 uppercase">Ubicación</label>
+<div class="text-sm font-medium p-1 -ml-1 rounded-md transition-colors hover:bg-surface-container-high cursor-text mb-1 break-words">Av. Javier Prado Este 1234, Lima</div>
+<div class="flex gap-2 mt-1">
+<a class="flex-1 bg-surface-container border border-outline-variant/30 hover:bg-surface-container-high text-primary text-xs font-semibold py-1.5 rounded-lg flex items-center justify-center transition-colors min-touch" href="https://www.google.com/maps/search/?api=1&amp;query=Av.+Javier+Prado+Este+1234,+Lima" target="_blank">
+<span class="material-symbols-outlined text-[1rem] mr-1">location_on</span> Maps
+</a>
+<a class="flex-1 bg-surface-container border border-outline-variant/30 hover:bg-surface-container-high text-[#33ccff] text-xs font-semibold py-1.5 rounded-lg flex items-center justify-center transition-colors min-touch" href="https://waze.com/ul?q=Av.%20Javier%20Prado%20Este%201234,%20Lima" target="_blank">
+<span class="material-symbols-outlined text-[1rem] mr-1">navigation</span> Waze
+</a>
+</div>
 </div>
 <div class="group">
 <label class="text-[0.6875rem] font-bold text-on-surface-variant/70 block mb-1 uppercase">Etapa del ciclo de vida</label>
@@ -519,7 +531,7 @@
     // Lógica del Formulario para Añadir Cliente
     document.getElementById('addClientForm').addEventListener('submit', (e) => {
         e.preventDefault();
-        alert('✨ Contacto guardado exitosamente. Los datos se han registrado correctamente en el CRM.\\n\\nLa vista principal se actualizará para reflejar al nuevo cliente.');
+        alert('✨ Se agregó el contacto correctamente a la bandeja de contactos nuevos.');
         document.getElementById('addClientModal').classList.add('hidden');
         e.target.reset();
     });
