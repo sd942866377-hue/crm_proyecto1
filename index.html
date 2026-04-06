@@ -1,0 +1,442 @@
+<!DOCTYPE html>
+
+<html class="light" lang="es"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0" name="viewport"/>
+<title>Registro de Contacto | Sarah Johnson | Architectural Ledger</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "on-primary-fixed": "#3c0700",
+                    "tertiary": "#005664",
+                    "on-secondary-fixed-variant": "#37485b",
+                    "primary": "#8f290f",
+                    "secondary-fixed": "#d2e4fb",
+                    "surface-container-lowest": "#ffffff",
+                    "secondary-container": "#cfe1f8",
+                    "on-primary-fixed-variant": "#862208",
+                    "surface-variant": "#e0e3e5",
+                    "surface-container-low": "#f1f4f6",
+                    "on-primary-container": "#ffdcd4",
+                    "on-error-container": "#93000a",
+                    "tertiary-container": "#007082",
+                    "on-secondary-container": "#536478",
+                    "secondary-fixed-dim": "#b6c8df",
+                    "on-error": "#ffffff",
+                    "tertiary-fixed": "#a8edff",
+                    "error": "#ba1a1a",
+                    "outline-variant": "#c1c7d2",
+                    "primary-fixed": "#ffdad2",
+                    "inverse-surface": "#2d3133",
+                    "on-secondary": "#ffffff",
+                    "on-surface-variant": "#414751",
+                    "on-primary": "#ffffff",
+                    "on-surface": "#181c1e",
+                    "primary-fixed-dim": "#ffb4a2",
+                    "surface-container-high": "#e5e9eb",
+                    "surface-tint": "#a7391e",
+                    "secondary": "#4f6073",
+                    "surface-container": "#ebeef0",
+                    "surface-bright": "#f7fafc",
+                    "surface-dim": "#d7dadc",
+                    "on-tertiary-container": "#aeeeff",
+                    "tertiary-fixed-dim": "#5cd6f0",
+                    "primary-container": "#b04024",
+                    "background": "#f7fafc",
+                    "on-tertiary-fixed-variant": "#004e5b",
+                    "error-container": "#ffdad6",
+                    "on-tertiary-fixed": "#001f25",
+                    "inverse-primary": "#ffb4a2",
+                    "surface": "#f7fafc",
+                    "on-background": "#181c1e",
+                    "outline": "#717782",
+                    "surface-container-highest": "#e0e3e5",
+                    "on-tertiary": "#ffffff",
+                    "on-secondary-fixed": "#0a1d2d",
+                    "inverse-on-surface": "#eef1f3",
+                    "whatsapp": "#25D366"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.125rem",
+                    "lg": "0.25rem",
+                    "xl": "0.5rem",
+                    "full": "0.75rem"
+            },
+            "fontFamily": {
+                    "headline": ["Inter"],
+                    "body": ["Inter"],
+                    "label": ["Inter"]
+            }
+          },
+        },
+      }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+            vertical-align: middle;
+        }
+        body { font-family: 'Inter', sans-serif; overflow-x: hidden; width: 100%; }
+        .break-words { word-wrap: break-word; overflow-wrap: break-word; }
+        .min-touch { min-height: 44px; min-width: 44px; }
+        
+        /* Mobile Menu Toggle Logic */
+        #mobile-menu:target { display: flex; }
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
+        /* Nav Dropdown Styles */
+        .nav-item {
+            position: relative;
+            padding: 0.5rem 0.75rem;
+            border-radius: 0.5rem;
+            transition: all 0.2s ease;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 2px;
+        }
+        .nav-item:hover {
+            background-color: #f1f5f9; /* slate-100 */
+        }
+        .nav-item:active {
+            transform: scale(0.98);
+            background-color: #e2e8f0; /* slate-200 */
+        }
+        .dropdown-menu {
+            display: none;
+            position: absolute;
+            top: 100%;
+            left: 0;
+            min-width: 200px;
+            background: white;
+            border: 1px solid #e2e8f0; /* slate-200 */
+            border-radius: 0.5rem;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+            z-index: 100;
+            padding: 0.5rem 0;
+            margin-top: 0.5rem;
+        }
+        .nav-item:hover .dropdown-menu,
+        .nav-item:focus-within .dropdown-menu {
+            display: block;
+        }
+        .dropdown-link {
+            display: block;
+            padding: 0.5rem 1rem;
+            font-size: 0.875rem;
+            color: #475569; /* slate-600 */
+            transition: all 0.2s;
+        }
+        .dropdown-link:hover {
+            background-color: #f8fafc;
+            color: #8f290f; /* primary */
+        }
+    </style>
+</head>
+<body class="bg-surface text-on-surface">
+<!-- TopNavBar -->
+<nav class="flex items-center justify-between px-4 md:px-8 py-3 w-full sticky top-0 z-50 bg-white/80 dark:bg-slate-900/80 backdrop-blur-md shadow-sm border-b border-slate-200/50 dark:border-slate-800/50 font-sans text-[0.875rem] leading-tight tracking-tight">
+<div class="flex items-center gap-4 md:gap-6">
+<button class="md:hidden p-2 min-touch" onclick="document.getElementById('mobile-nav').classList.toggle('hidden')">
+<span class="material-symbols-outlined" data-icon="menu">menu</span>
+</button>
+<span class="text-base md:text-lg font-bold tracking-tighter text-slate-900 dark:text-slate-50 whitespace-nowrap mr-2">Architectural Ledger</span>
+<div class="hidden md:flex items-center gap-2">
+<a class="nav-item text-orange-900 dark:text-orange-200 font-semibold" href="#">
+<span>Contactos</span>
+</a>
+<div class="nav-item group" tabindex="0">
+<span class="text-slate-500 dark:text-slate-400 font-medium">Empresas</span>
+<span class="material-symbols-outlined text-[1rem] text-slate-400" data-icon="expand_more">expand_more</span>
+<div class="dropdown-menu">
+<a class="dropdown-link" href="#">Ver empresas</a>
+<a class="dropdown-link" href="#">Empresas objetivo</a>
+</div>
+</div>
+<div class="nav-item group" tabindex="0">
+<span class="text-slate-500 dark:text-slate-400 font-medium">Ventas</span>
+<span class="material-symbols-outlined text-[1rem] text-slate-400" data-icon="expand_more">expand_more</span>
+<div class="dropdown-menu">
+<a class="dropdown-link" href="#">Tratos (Deals)</a>
+<a class="dropdown-link" href="#">Tareas</a>
+<a class="dropdown-link" href="#">Reuniones</a>
+<a class="dropdown-link" href="#">Documentos</a>
+</div>
+</div>
+<div class="nav-item group" tabindex="0">
+<span class="text-slate-500 dark:text-slate-400 font-medium">Marketing</span>
+<span class="material-symbols-outlined text-[1rem] text-slate-400" data-icon="expand_more">expand_more</span>
+<div class="dropdown-menu">
+<a class="dropdown-link" href="#">Correos electrónicos</a>
+<a class="dropdown-link" href="#">Campañas</a>
+<a class="dropdown-link" href="#">Anuncios</a>
+</div>
+</div>
+</div>
+</div>
+<div class="hidden lg:flex items-center gap-4 flex-1 max-w-md mx-8">
+<div class="relative w-full">
+<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-outline" data-icon="search">search</span>
+<input class="w-full bg-surface-container-low border-none rounded-xl py-2 pl-10 pr-4 focus:ring-2 focus:ring-primary/20 text-sm" placeholder="Buscar contactos, tratos, tareas..." type="text"/>
+</div>
+</div>
+<div class="flex items-center gap-2 md:gap-3">
+<button class="p-2 text-slate-500 hover:bg-slate-50 dark:hover:bg-slate-800/50 rounded-md transition-all min-touch"><span class="material-symbols-outlined" data-icon="notifications">notifications</span></button>
+<button class="hidden sm:block p-2 text-slate-500 hover:bg-slate-50 dark:hover:bg-slate-800/50 rounded-md transition-all min-touch"><span class="material-symbols-outlined" data-icon="settings">settings</span></button>
+<div class="h-8 w-8 md:h-10 md:w-10 rounded-full bg-primary overflow-hidden ml-1 border border-outline-variant/30 shrink-0">
+<img alt="Perfil de Usuario Ejecutivo" class="w-full h-full object-cover" data-alt="Foto profesional de un ejecutivo sonriente" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCUB4FjKNhlqTyifJ3A8oHMkkM7rXXPxmQy5Q305s-6-V1CtTuXfutJtCG53vDgxfQOe6QsfxoSNkP20CByuy7fanzEuA3TxrwrJay0VEWuRFANtwHwr_r35d9g7pkSL4Nwfofb9ydzDNqVwiPCE6FnPHWVGxyU7EwkYRHXtNUVPrQYeSbqfTnA4HD0ovz0LiFE1d79Ozk0TJgJ85jox78dcGFSjg1A6kytiJMwNWQhLAWY9J-mnDKfjYr8txfvSMjczBxEqvF7WDk"/>
+</div>
+</div>
+</nav>
+<!-- Mobile Navigation Menu -->
+<div class="hidden md:hidden bg-white border-b border-outline-variant/20 px-4 py-4" id="mobile-nav">
+<div class="flex flex-col gap-4 font-medium">
+<a class="text-primary font-bold" href="#">Contactos</a>
+<a class="text-on-surface-variant" href="#">Empresas</a>
+<a class="text-on-surface-variant" href="#">Ventas</a>
+<a class="text-on-surface-variant" href="#">Marketing</a>
+<hr class="border-outline-variant/10"/>
+<div class="relative w-full">
+<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-outline" data-icon="search">search</span>
+<input class="w-full bg-surface-container-low border-none rounded-xl py-3 pl-10 pr-4 text-sm" placeholder="Buscar..." type="text"/>
+</div>
+</div>
+</div>
+<!-- Main Layout Container -->
+<main class="flex flex-col lg:grid lg:grid-cols-12 gap-0 min-h-screen">
+<!-- Left Column: Profile -->
+<aside class="w-full lg:col-span-3 bg-surface-container-low border-r border-outline-variant/15 p-4 md:p-6">
+<div class="lg:sticky lg:top-24 flex flex-col gap-6 md:gap-8">
+<!-- Profile Header -->
+<div class="flex flex-col items-center text-center">
+<div class="w-20 h-20 md:w-24 md:h-24 rounded-full bg-surface-container-lowest shadow-sm mb-4 p-1 ring-1 ring-outline-variant/30 overflow-hidden">
+<img alt="Retrato de Sarah Johnson" class="w-full h-full object-cover rounded-full" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDy8hG7WvDTAd-jmhclWkxC-aMB1F8HfHa62tuMTtddkYX5TyodjhwjSQ_5Ub6QmE14yvUr2526ONOc0GER-oR8fipI6hmXFKUpGPZ_r96T5ul1cYuDIj3N4Cmrz06Dq6nXyZF8doVgBrmE9FJ2h7FNZBOloVvwTXpQUuwtcSy2dzZkK9M4P2NzdMVU0fyik8A4dYm8iSerwRdh41R-tToz-1r09QjD3xWXIdm-24lZvo4a73yhsA9FK65CjznXUgd5uJYKp_C1-lU"/>
+</div>
+<h1 class="text-xl font-bold text-on-surface tracking-tight break-words w-full px-2">Sarah Johnson</h1>
+<p class="text-on-surface-variant text-sm mb-4">Gerente Senior de Marketing</p>
+<div class="flex gap-2 w-full max-w-sm">
+<a class="flex-1 min-touch py-2 rounded-xl bg-whatsapp text-white text-xs font-semibold shadow-sm hover:opacity-90 transition-opacity flex items-center justify-center" href="https://wa.me/51987654321" target="_blank">
+<span class="material-symbols-outlined text-[1.1rem] mr-1" data-icon="chat">chat</span> WhatsApp
+                        </a>
+<a class="flex-1 min-touch py-2 rounded-xl bg-secondary-container text-on-secondary-container text-xs font-semibold hover:bg-secondary-fixed-dim transition-colors flex items-center justify-center" href="tel:+51987654321">
+<span class="material-symbols-outlined text-[1.1rem] mr-1" data-icon="call">call</span> Llamar
+                        </a>
+</div>
+</div>
+<!-- Contact About Section -->
+<div class="bg-surface-container-lowest rounded-xl p-4 md:p-5 shadow-sm border border-outline-variant/10">
+<h2 class="text-xs font-bold uppercase tracking-widest text-on-surface-variant mb-4 flex items-center justify-between">
+                        Acerca del contacto
+                        <span class="material-symbols-outlined text-sm cursor-pointer min-touch flex items-center justify-center" data-icon="edit">edit</span>
+</h2>
+<div class="flex flex-col gap-5">
+<!-- Editable Fields -->
+<div class="group">
+<label class="text-[0.6875rem] font-bold text-on-surface-variant/70 block mb-1 uppercase">Correo electrónico</label>
+<div class="text-sm font-medium p-1 -ml-1 rounded-md transition-colors hover:bg-surface-container-high cursor-text break-words">sarah.j@techcorp.com</div>
+</div>
+<div class="group">
+<label class="text-[0.6875rem] font-bold text-on-surface-variant/70 block mb-1 uppercase">Teléfono</label>
+<div class="text-sm font-medium p-1 -ml-1 rounded-md transition-colors hover:bg-surface-container-high cursor-text">+51 987 654 321</div>
+</div>
+<div class="group">
+<label class="text-[0.6875rem] font-bold text-on-surface-variant/70 block mb-1 uppercase">Etapa del ciclo de vida</label>
+<div class="inline-flex px-2 py-1 bg-primary-fixed text-on-primary-fixed-variant text-xs font-semibold rounded-lg mt-1">Lead</div>
+</div>
+<div class="group">
+<label class="text-[0.6875rem] font-bold text-on-surface-variant/70 block mb-1 uppercase">Estado del lead</label>
+<div class="inline-flex px-2 py-1 bg-secondary-fixed text-on-secondary-fixed-variant text-xs font-semibold rounded-lg mt-1">Nuevo</div>
+</div>
+<div class="group">
+<label class="text-[0.6875rem] font-bold text-on-surface-variant/70 block mb-1 uppercase">Propietario</label>
+<div class="flex items-center gap-2 mt-1">
+<div class="w-6 h-6 rounded-full bg-tertiary-container text-[10px] flex items-center justify-center text-white font-bold">AL</div>
+<span class="text-sm font-medium">Alex Ledger</span>
+</div>
+</div>
+</div>
+</div>
+</div>
+</aside>
+<!-- Middle Column: Activity Feed -->
+<section class="w-full lg:col-span-6 p-4 md:p-8 overflow-y-auto">
+<!-- Feed Tabs -->
+<div class="flex items-center gap-1 border-b border-outline-variant/20 mb-6 overflow-x-auto no-scrollbar pb-1">
+<button class="px-4 md:px-5 py-3 text-sm font-semibold text-primary border-b-2 border-primary whitespace-nowrap min-touch">Actividad</button>
+<button class="px-4 md:px-5 py-3 text-sm font-medium text-on-surface-variant hover:bg-surface-container-high rounded-t-lg transition-colors whitespace-nowrap min-touch">Notas</button>
+<button class="px-4 md:px-5 py-3 text-sm font-medium text-on-surface-variant hover:bg-surface-container-high rounded-t-lg transition-colors whitespace-nowrap min-touch">Correos</button>
+<button class="px-4 md:px-5 py-3 text-sm font-medium text-on-surface-variant hover:bg-surface-container-high rounded-t-lg transition-colors whitespace-nowrap min-touch">Llamadas</button>
+<button class="px-4 md:px-5 py-3 text-sm font-medium text-on-surface-variant hover:bg-surface-container-high rounded-t-lg transition-colors whitespace-nowrap min-touch">Tareas</button>
+<button class="px-4 md:px-5 py-3 text-sm font-medium text-on-surface-variant hover:bg-surface-container-high rounded-t-lg transition-colors whitespace-nowrap min-touch">Reuniones</button>
+</div>
+<!-- Primary Action: Create Call Reminder -->
+<div class="mb-8">
+<button class="w-full bg-primary-container text-white py-4 px-6 rounded-xl flex items-center justify-between shadow-md hover:bg-primary transition-all group">
+<div class="flex items-center gap-4">
+<div class="bg-white/20 p-2 rounded-full">
+<span class="material-symbols-outlined text-2xl" data-icon="add_call">add_call</span>
+</div>
+<div class="text-left">
+<p class="text-lg font-bold">Crear recordatorio de llamada</p>
+<p class="text-xs opacity-90 font-medium">Programar seguimiento para el equipo de Perú</p>
+</div>
+</div>
+<span class="material-symbols-outlined group-hover:translate-x-1 transition-transform" data-icon="chevron_right">chevron_right</span>
+</button>
+</div>
+<!-- Composer -->
+<div class="bg-surface-container-lowest border border-outline-variant/20 rounded-xl p-4 mb-10 shadow-sm">
+<div class="flex gap-3 md:gap-4 mb-4">
+<div class="w-10 h-10 rounded-full bg-surface-container-high flex items-center justify-center shrink-0">
+<span class="material-symbols-outlined text-outline" data-icon="edit_note">edit_note</span>
+</div>
+<textarea class="flex-1 border-none focus:ring-0 text-sm resize-none py-2" placeholder="Escribe una nota sobre Sarah..." rows="2"></textarea>
+</div>
+<div class="flex justify-between items-center pt-2 border-t border-outline-variant/10">
+<div class="flex gap-1">
+<button class="p-2 hover:bg-surface-container-high rounded-lg text-outline transition-colors min-touch flex items-center"><span class="material-symbols-outlined text-lg" data-icon="format_bold">format_bold</span></button>
+<button class="p-2 hover:bg-surface-container-high rounded-lg text-outline transition-colors min-touch flex items-center"><span class="material-symbols-outlined text-lg" data-icon="attach_file">attach_file</span></button>
+<button class="p-2 hover:bg-surface-container-high rounded-lg text-outline transition-colors min-touch flex items-center"><span class="material-symbols-outlined text-lg" data-icon="person_add">person_add</span></button>
+</div>
+<button class="bg-primary text-white px-5 py-2.5 rounded-lg text-xs font-semibold hover:opacity-90 min-touch">Guardar nota</button>
+</div>
+</div>
+<!-- Feed Items -->
+<div class="flex flex-col gap-0">
+<!-- Activity 1 -->
+<div class="relative pl-10 pb-10 border-l border-outline-variant/20 ml-4">
+<div class="absolute -left-[18px] top-0 w-9 h-9 bg-surface-container-lowest border border-outline-variant/20 rounded-full flex items-center justify-center shadow-sm">
+<span class="material-symbols-outlined text-primary text-[1.2rem]" data-icon="mail">mail</span>
+</div>
+<div class="bg-surface-container-lowest p-5 rounded-xl border border-outline-variant/10 shadow-sm hover:bg-surface-container-low transition-colors">
+<div class="flex flex-col sm:flex-row sm:justify-between mb-2 gap-1">
+<span class="text-sm font-bold">Correo enviado: Introducción</span>
+<span class="text-[0.6875rem] text-on-surface-variant font-medium">Hace 2 horas</span>
+</div>
+<p class="text-sm text-on-surface-variant mb-4 leading-relaxed break-words">"Hola Sarah, un placer conocerte en la cumbre. Me encantaría dar seguimiento a las especificaciones arquitectónicas que discutimos..."</p>
+<div class="flex flex-wrap gap-4">
+<span class="text-[0.6875rem] font-bold text-tertiary flex items-center gap-1"><span class="material-symbols-outlined text-xs" data-icon="visibility">visibility</span> Abierto (2)</span>
+<span class="text-[0.6875rem] font-bold text-secondary flex items-center gap-1"><span class="material-symbols-outlined text-xs" data-icon="near_me">near_me</span> Clics (1)</span>
+</div>
+</div>
+</div>
+<!-- Activity 2 -->
+<div class="relative pl-10 pb-10 border-l border-outline-variant/20 ml-4">
+<div class="absolute -left-[18px] top-0 w-9 h-9 bg-surface-container-lowest border border-outline-variant/20 rounded-full flex items-center justify-center shadow-sm">
+<span class="material-symbols-outlined text-orange-600 text-[1.2rem]" data-icon="call">call</span>
+</div>
+<div class="bg-surface-container-lowest p-5 rounded-xl border border-outline-variant/10 shadow-sm hover:bg-surface-container-low transition-colors">
+<div class="flex flex-col sm:flex-row sm:justify-between mb-2 gap-1">
+<span class="text-sm font-bold">Llamada registrada</span>
+<span class="text-[0.6875rem] text-on-surface-variant font-medium">Ayer a las 4:15 PM</span>
+</div>
+<p class="text-sm text-on-surface-variant leading-relaxed break-words">Se discutió la asignación presupuestaria del T3. Sarah mencionó que buscan expandir la división arquitectónica en un 15%.</p>
+<div class="mt-4 flex gap-2">
+<span class="text-[0.6875rem] bg-surface-container-high px-2 py-0.5 rounded text-on-surface-variant font-bold">Resultado: Conectado</span>
+</div>
+</div>
+</div>
+<!-- Activity 3 (Property Change) -->
+<div class="relative pl-10 pb-10 border-l border-outline-variant/20 ml-4">
+<div class="absolute -left-[18px] top-0 w-9 h-9 bg-surface-container-lowest border border-outline-variant/20 rounded-full flex items-center justify-center shadow-sm">
+<span class="material-symbols-outlined text-blue-500 text-[1.2rem]" data-icon="refresh">refresh</span>
+</div>
+<div class="p-1">
+<div class="flex flex-wrap items-center gap-x-2 gap-y-1">
+<span class="text-sm font-medium">Cambio de propiedad:</span>
+<span class="text-sm font-bold whitespace-nowrap">Etapa del ciclo de vida</span>
+<span class="text-xs text-on-surface-variant">cambió de <span class="line-through">Suscriptor</span> a</span>
+<span class="text-xs font-bold text-primary">Lead</span>
+<span class="text-[0.6875rem] text-on-surface-variant ml-auto font-medium">12 oct, 2023</span>
+</div>
+</div>
+</div>
+<!-- Activity 4 -->
+<div class="relative pl-10 pb-0 border-l-0 ml-4">
+<div class="absolute -left-[18px] top-0 w-9 h-9 bg-surface-container-lowest border border-outline-variant/20 rounded-full flex items-center justify-center shadow-sm">
+<span class="material-symbols-outlined text-green-600 text-[1.2rem]" data-icon="check_circle">check_circle</span>
+</div>
+<div class="bg-surface-container-lowest p-5 rounded-xl border border-outline-variant/10 shadow-sm hover:bg-surface-container-low transition-colors">
+<div class="flex flex-col sm:flex-row sm:justify-between mb-2 gap-1">
+<span class="text-sm font-bold">Tarea completada: Enviar folleto</span>
+<span class="text-[0.6875rem] text-on-surface-variant font-medium">11 oct, 2023</span>
+</div>
+<p class="text-sm text-on-surface-variant italic break-words">"Paquete de activos digitales entregado a través del portal de HubSpot."</p>
+</div>
+</div>
+</div>
+</section>
+<!-- Right Column: Associations -->
+<aside class="w-full lg:col-span-3 bg-surface-container-low border-l border-outline-variant/15 p-4 md:p-6 overflow-y-auto">
+<div class="flex flex-col gap-6">
+<!-- Companies Association -->
+<div>
+<div class="flex items-center justify-between mb-3">
+<h3 class="text-xs font-bold uppercase tracking-widest text-on-surface-variant">Empresa</h3>
+<button class="text-primary text-xs font-bold hover:underline min-touch px-2">+ Añadir</button>
+</div>
+<div class="bg-surface-container-lowest rounded-xl p-4 border border-outline-variant/10 shadow-sm group cursor-pointer hover:border-primary/30 transition-all">
+<div class="flex items-center gap-3">
+<div class="w-10 h-10 rounded-lg bg-surface-container-high flex items-center justify-center text-primary font-bold shrink-0">TC</div>
+<div class="overflow-hidden">
+<div class="text-sm font-bold group-hover:text-primary transition-colors truncate">TechCorp</div>
+<div class="text-[0.6875rem] text-on-surface-variant truncate">techcorp.com</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Deals Association -->
+<div>
+<div class="flex items-center justify-between mb-3">
+<h3 class="text-xs font-bold uppercase tracking-widest text-on-surface-variant">Tratos (1)</h3>
+<button class="text-primary text-xs font-bold hover:underline min-touch px-2">+ Añadir</button>
+</div>
+<div class="bg-surface-container-lowest rounded-xl p-4 border border-outline-variant/10 shadow-sm hover:border-primary/30 transition-all cursor-pointer">
+<div class="text-sm font-bold mb-1 truncate">Expansión T3 - $15,000</div>
+<div class="flex justify-between items-center gap-2">
+<span class="text-[0.6875rem] px-1.5 py-0.5 bg-secondary-fixed text-on-secondary-fixed font-bold rounded whitespace-nowrap uppercase">Descubrimiento</span>
+<span class="text-[0.6875rem] text-on-surface-variant whitespace-nowrap">Cierre: 31 oct</span>
+</div>
+<div class="mt-3 w-full bg-surface-container-high h-1.5 rounded-full overflow-hidden">
+<div class="bg-primary h-full w-[35%]"></div>
+</div>
+</div>
+</div>
+<!-- Tickets Association -->
+<div>
+<div class="flex items-center justify-between mb-3">
+<h3 class="text-xs font-bold uppercase tracking-widest text-on-surface-variant">Tickets / Soportes (1)</h3>
+<button class="text-primary text-xs font-bold hover:underline min-touch px-2">+ Añadir</button>
+</div>
+<div class="bg-surface-container-lowest rounded-xl p-4 border border-outline-variant/10 shadow-sm hover:border-primary/30 transition-all cursor-pointer">
+<div class="flex gap-3">
+<span class="material-symbols-outlined text-error text-[1.2rem] mt-0.5 shrink-0" data-icon="confirmation_number">confirmation_number</span>
+<div class="overflow-hidden">
+<div class="text-sm font-bold truncate">Problema de inicio de sesión</div>
+<div class="text-[0.6875rem] text-error font-bold uppercase mt-0.5 whitespace-nowrap">Alta prioridad</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Other Attachments (Visual Gap Filler) -->
+<div>
+<div class="flex items-center justify-between mb-3">
+<h3 class="text-xs font-bold uppercase tracking-widest text-on-surface-variant">Membresías de listas</h3>
+</div>
+<div class="flex flex-wrap gap-2">
+<span class="text-[0.6875rem] px-2 py-1 bg-surface-container-high rounded-full font-medium whitespace-nowrap">Suscripción Boletín</span>
+<span class="text-[0.6875rem] px-2 py-1 bg-surface-container-high rounded-full font-medium whitespace-nowrap">Leads Evento T3</span>
+<span class="text-[0.6875rem] px-2 py-1 bg-surface-container-high rounded-full font-medium whitespace-nowrap">SaaS-Enterprise</span>
+</div>
+</div>
+</div>
+</aside>
+</main>
+</body></html>
