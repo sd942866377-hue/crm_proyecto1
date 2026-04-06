@@ -439,4 +439,107 @@
 </div>
 </aside>
 </main>
+<script>
+    // Lógica para cambiar entre pestañas de Actividad
+    const tabs = document.querySelectorAll('.pb-1 > button');
+    tabs.forEach(tab => {
+        tab.addEventListener('click', (e) => {
+            tabs.forEach(t => {
+                t.classList.remove('text-primary', 'border-b-2', 'border-primary', 'font-semibold');
+                t.classList.add('text-on-surface-variant', 'rounded-t-lg', 'font-medium');
+            });
+            e.currentTarget.classList.add('text-primary', 'border-b-2', 'border-primary', 'font-semibold');
+            e.currentTarget.classList.remove('text-on-surface-variant', 'rounded-t-lg', 'font-medium');
+        });
+    });
+
+    // Botones con icono en la navegación y herramientas
+    document.querySelectorAll('button span.material-symbols-outlined').forEach(span => {
+        const icon = span.getAttribute('data-icon');
+        // Filtramos para que no salte en el de menú que ya tiene funcionalidad o en cosas simples
+        if (['notifications', 'settings', 'format_bold', 'attach_file', 'person_add'].includes(icon)) {
+            span.parentElement.addEventListener('click', (e) => {
+                e.preventDefault();
+                alert('Funcionalidad simulada activada: ' + icon);
+            });
+        }
+    });
+
+    // Lógica para botones "+ Añadir" en el Panel Derecho
+    document.querySelectorAll('button').forEach(btn => {
+        if (btn.innerText.trim() === '+ Añadir') {
+            btn.addEventListener('click', () => {
+                const section = btn.parentElement.querySelector('h3').innerText;
+                const value = prompt('Ventana: Añadir registro vinculado a -> ' + section + '\\n\\nIngresa el identificador o nombre a asignar:');
+                if (value) {
+                    alert('✅ Exitoso: Se asoció "' + value + '" a ' + section);
+                }
+            });
+        }
+    });
+
+    // Acción para guardar nota
+    const saveNoteBtn = document.querySelector('button.bg-primary.text-white');
+    if (saveNoteBtn && saveNoteBtn.innerText.includes('Guardar nota')) {
+        saveNoteBtn.addEventListener('click', () => {
+            const textarea = document.querySelector('textarea');
+            if (!textarea.value.trim()) {
+                alert('⚠️ La nota está vacía. Escribe algo para guardarla en el CRM.');
+            } else {
+                alert('💾 Nota de seguimiento guardada exitosamente:\\n\\n' + textarea.value);
+                textarea.value = '';
+            }
+        });
+    }
+
+    // Acción para Crear Recordatorio de Seguimiento (Perú)
+    const callReminderBtn = document.querySelector('.bg-primary-container');
+    if (callReminderBtn) {
+        callReminderBtn.addEventListener('click', () => {
+            alert('🔔 Recordatorio agendado exitosamente para realizar seguimiento telefónico.\\nEl asesor será notificado en su correo.');
+        });
+    }
+
+    // Habilitar edición rápida de la tarjeta de contacto mediante el ICONO del lápiz
+    const editIcon = document.querySelector('h2 span[data-icon="edit"]');
+    if (editIcon) {
+        editIcon.addEventListener('click', () => {
+            const fields = document.querySelectorAll('.cursor-text');
+            const isActive = fields[0].isContentEditable;
+            fields.forEach(el => {
+                if (!isActive) {
+                    el.contentEditable = true;
+                    el.classList.add('bg-white', 'shadow-inner', 'ring-1', 'ring-primary', 'px-2');
+                } else {
+                    el.contentEditable = false;
+                    el.classList.remove('bg-white', 'shadow-inner', 'ring-1', 'ring-primary', 'px-2');
+                }
+            });
+            if (!isActive) {
+                alert('✏️ Modo edición en línea ACTIVADO.\\nAhora puedes hacer clic directamente en textos como el Correo o el Teléfono para modificarlos.');
+            } else {
+                alert('💾 Cambios del perfil guardados automáticamente.');
+            }
+        });
+    }
+
+    // Manejar enlaces en los DROPDOWN menús para mostrar prototipos y navegación
+    document.querySelectorAll('a').forEach(a => {
+        const href = a.getAttribute('href');
+        if (href === '#' || href === '') {
+            a.addEventListener('click', (e) => {
+                e.preventDefault();
+                alert('Navegando hacia: ' + e.currentTarget.innerText.trim());
+            });
+        }
+    });
+
+    // Cerrar menú móvil al hacer clic en enlaces dentro del menú hamburguesa
+    document.querySelectorAll('#mobile-nav a').forEach(a => {
+        a.addEventListener('click', () => {
+            document.getElementById('mobile-nav').classList.add('hidden');
+        });
+    });
+
+</script>
 </body></html>
