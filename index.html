@@ -3,7 +3,7 @@
 <html class="light" lang="es"><head>
 <meta charset="utf-8"/>
 <meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0" name="viewport"/>
-<title>Registro de Contacto | Sarah Johnson | Architectural Ledger</title>
+<title>Registro de Contacto | Sarah Johnson | CRM Arquitectónico</title>
 <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&amp;display=swap" rel="stylesheet"/>
 <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
@@ -147,7 +147,7 @@
 <button class="md:hidden p-2 min-touch" onclick="document.getElementById('mobile-nav').classList.toggle('hidden')">
 <span class="material-symbols-outlined" data-icon="menu">menu</span>
 </button>
-<span class="text-base md:text-lg font-bold tracking-tighter text-slate-900 dark:text-slate-50 whitespace-nowrap mr-2">Architectural Ledger</span>
+<span class="text-base md:text-lg font-bold tracking-tighter text-slate-900 dark:text-slate-50 whitespace-nowrap mr-2">CRM Arquitectónico</span>
 <div class="hidden md:flex items-center gap-2">
 <a class="nav-item text-orange-900 dark:text-orange-200 font-semibold" href="#">
 <span>Contactos</span>
@@ -469,10 +469,15 @@
                 </div>
             </div>
             <div>
-                <label class="block text-[0.6875rem] font-bold text-on-surface-variant/70 uppercase mb-1.5">Ubicación del Domicilio</label>
-                <div class="relative">
-                    <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-[1.1rem]">location_on</span>
-                    <input type="text" required class="w-full bg-slate-50 dark:bg-slate-800 border-none rounded-xl py-3 pl-10 pr-4 text-sm focus:ring-2 focus:ring-primary/30 transition-shadow text-slate-800" placeholder="Ej. Av. Javier Prado Este 1234, Lima">
+                <label class="block text-[0.6875rem] font-bold text-on-surface-variant/70 uppercase mb-1.5">Ubicación del Domicilio (Google Maps)</label>
+                <div class="flex gap-2">
+                    <div class="relative flex-1">
+                        <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-[1.1rem]">location_on</span>
+                        <input type="text" id="locationInput" required class="w-full bg-slate-50 dark:bg-slate-800 border-none rounded-xl py-3 pl-10 pr-4 text-sm focus:ring-2 focus:ring-primary/30 transition-shadow text-slate-800" placeholder="Ej. Av. Javier Prado Este, Lima o Enlace">
+                    </div>
+                    <button type="button" onclick="getDeviceLocation()" class="bg-surface-container-high hover:bg-surface-dim text-primary rounded-xl px-3 flex items-center justify-center transition-colors min-touch shadow-sm" title="Obtener mi ubicación GPS actual">
+                        <span class="material-symbols-outlined">my_location</span>
+                    </button>
                 </div>
             </div>
             <div class="mt-2 flex gap-3 justify-end border-t border-slate-100 dark:border-slate-800 pt-5">
@@ -484,6 +489,33 @@
 </div>
 </main>
 <script>
+    // Lógica para obtener ubicación GPS desde Google Maps (Dispositivo)
+    function getDeviceLocation() {
+        const locInput = document.getElementById('locationInput');
+        locInput.placeholder = "Obteniendo coordenadas GPS...";
+        if (navigator.geolocation) {
+            navigator.geolocation.getCurrentPosition(
+                (position) => {
+                    const lat = position.coords.latitude;
+                    const lng = position.coords.longitude;
+                    locInput.value = `https://www.google.com/maps?q=${lat},${lng}`;
+                    alert('📍 Ubicación capturada exitosamente desde el GPS de tu dispositivo y convertida a enlace de Google Maps.');
+                },
+                (error) => {
+                    let msg = "Error desconocido.";
+                    if(error.code === 1) msg = "Debes permitir el acceso a la ubicación en tu navegador/dispositivo.";
+                    if(error.code === 2) msg = "La red no está disponible o el satélite no responde.";
+                    if(error.code === 3) msg = "Se agotó el tiempo de espera para obtener la ubicación.";
+                    alert('❌ No se pudo obtener la ubicación: ' + msg);
+                    locInput.placeholder = "Ej. Av. Javier Prado Este, Lima o Enlace";
+                },
+                { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
+            );
+        } else {
+            alert("⚠️ La geolocalización no está soportada en este navegador/dispositivo.");
+        }
+    }
+
     // Lógica del Formulario para Añadir Cliente
     document.getElementById('addClientForm').addEventListener('submit', (e) => {
         e.preventDefault();
