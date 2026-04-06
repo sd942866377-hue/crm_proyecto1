@@ -561,27 +561,33 @@
     document.getElementById('addClientForm').addEventListener('submit', (e) => {
         e.preventDefault();
         
-        // Obtener valores
-        const nameInput = document.querySelector('#addClientForm input[placeholder="Ej. Juan Pérez"]').value;
-        const phoneInput = document.querySelector('#addClientForm type="tel"]') ? document.querySelector('#addClientForm type="tel"]').value : document.querySelectorAll('#addClientForm input')[1].value;
-        const emailInput = document.querySelectorAll('#addClientForm input')[2].value;
-        const locInput = document.getElementById('locationInput').value;
-        
-        // Guardar contacto en LocalStorage
-        saveContact({
-            name: nameInput,
-            phone: phoneInput,
-            email: emailInput,
-            location: locInput,
-            date: new Date().toLocaleDateString()
-        });
+        try {
+            // Obtener valores correctamente
+            const inputs = document.getElementById('addClientForm').querySelectorAll('input');
+            const nameInput = inputs[0].value;
+            const phoneInput = inputs[1].value;
+            const emailInput = inputs[2].value;
+            const locInput = inputs[3].value;
+            
+            // Guardar contacto en LocalStorage
+            saveContact({
+                name: nameInput,
+                phone: phoneInput,
+                email: emailInput,
+                location: locInput,
+                date: new Date().toLocaleDateString()
+            });
 
-        alert('✨ Se agregó el contacto correctamente a la bandeja de contactos nuevos.');
-        document.getElementById('addClientModal').classList.add('hidden');
-        e.target.reset();
-        
-        // Abrir bandeja para mostrar el éxito
-        toggleInboxPanel();
+            alert('✨ Se agregó el contacto correctamente a la bandeja de contactos nuevos.');
+            document.getElementById('addClientModal').classList.add('hidden');
+            e.target.reset();
+            
+            // Abrir bandeja para mostrar el éxito
+            toggleInboxPanel();
+        } catch(err) {
+            console.error(err);
+            alert("Error al guardar el contacto: " + err.message);
+        }
     });
 
     // --- Sistema de LocalStorage para Bandeja ---
