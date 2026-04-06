@@ -189,6 +189,9 @@
 </div>
 <div class="flex items-center gap-2 md:gap-3">
 <button onclick="document.getElementById('addClientModal').classList.remove('hidden')" class="bg-primary text-white text-xs font-bold px-3 py-2 rounded-lg hover:opacity-90 min-touch flex items-center justify-center gap-1 shadow-sm"><span class="material-symbols-outlined text-[1.1rem]">person_add</span> <span class="hidden sm:inline">Nuevo Cliente</span></button>
+<button onclick="toggleInboxPanel()" class="bg-surface-container-high border border-outline-variant/30 text-primary hover:bg-surface-dim transition-colors text-xs font-bold px-3 py-2 rounded-lg min-touch flex items-center justify-center gap-1 shadow-sm">
+    <span class="material-symbols-outlined text-[1.1rem]">inbox</span> <span class="hidden sm:inline">Bandeja (<span id="inboxCount">0</span>)</span>
+</button>
 <button class="p-2 text-slate-500 hover:bg-slate-50 dark:hover:bg-slate-800/50 rounded-md transition-all min-touch"><span class="material-symbols-outlined" data-icon="notifications">notifications</span></button>
 <button class="hidden sm:block p-2 text-slate-500 hover:bg-slate-50 dark:hover:bg-slate-800/50 rounded-md transition-all min-touch"><span class="material-symbols-outlined" data-icon="settings">settings</span></button>
 <div class="h-8 w-8 md:h-10 md:w-10 rounded-full bg-primary overflow-hidden ml-1 border border-outline-variant/30 shrink-0">
@@ -500,6 +503,32 @@
     </div>
 </div>
 </main>
+<!-- Bandeja de Contactos Nuevos (Slide-over Panel) -->
+<div id="inboxOverlay" class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-[110] hidden transition-opacity" onclick="toggleInboxPanel()"></div>
+<div id="inboxPanel" class="fixed top-0 right-0 h-full w-full max-w-sm bg-surface dark:bg-slate-900 z-[120] shadow-2xl transform translate-x-full transition-transform duration-300 ease-in-out flex flex-col">
+    <!-- Header -->
+    <div class="px-5 py-4 border-b border-outline-variant/20 flex justify-between items-center bg-surface-container-lowest">
+        <div class="flex items-center gap-3">
+            <div class="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center text-primary">
+                <span class="material-symbols-outlined text-[1.3rem]">inbox</span>
+            </div>
+            <div>
+                <h2 class="text-base font-bold text-on-surface leading-tight">Nuevos Contactos</h2>
+                <p class="text-[0.65rem] uppercase tracking-wider font-bold text-on-surface-variant/70">Guardado Automático (Memoria)</p>
+            </div>
+        </div>
+        <button onclick="toggleInboxPanel()" class="text-on-surface-variant hover:text-primary transition-colors p-2 rounded-xl border border-transparent hover:border-outline-variant/30 hover:bg-surface-container-high bg-white min-touch flex items-center justify-center">
+            <span class="material-symbols-outlined text-lg">close</span>
+        </button>
+    </div>
+    <!-- List Body -->
+    <div id="inboxList" class="p-4 overflow-y-auto flex-1 flex flex-col gap-3 bg-surface">
+        <div id="emptyInboxMsg" class="flex flex-col items-center justify-center mt-10 opacity-50">
+            <span class="material-symbols-outlined text-5xl mb-2">person_off</span>
+            <p class="text-sm text-center font-medium">La bandeja está vacía.</p>
+        </div>
+    </div>
+</div>
 <script>
     // Lógica para obtener ubicación GPS desde Google Maps (Dispositivo)
     function getDeviceLocation() {
@@ -531,10 +560,96 @@
     // Lógica del Formulario para Añadir Cliente
     document.getElementById('addClientForm').addEventListener('submit', (e) => {
         e.preventDefault();
+        
+        // Obtener valores
+        const nameInput = document.querySelector('#addClientForm input[placeholder="Ej. Juan Pérez"]').value;
+        const phoneInput = document.querySelector('#addClientForm type="tel"]') ? document.querySelector('#addClientForm type="tel"]').value : document.querySelectorAll('#addClientForm input')[1].value;
+        const emailInput = document.querySelectorAll('#addClientForm input')[2].value;
+        const locInput = document.getElementById('locationInput').value;
+        
+        // Guardar contacto en LocalStorage
+        saveContact({
+            name: nameInput,
+            phone: phoneInput,
+            email: emailInput,
+            location: locInput,
+            date: new Date().toLocaleDateString()
+        });
+
         alert('✨ Se agregó el contacto correctamente a la bandeja de contactos nuevos.');
         document.getElementById('addClientModal').classList.add('hidden');
         e.target.reset();
+        
+        // Abrir bandeja para mostrar el éxito
+        toggleInboxPanel();
     });
+
+    // --- Sistema de LocalStorage para Bandeja ---
+    function toggleInboxPanel() {
+        const panel = document.getElementById('inboxPanel');
+        const overlay = document.getElementById('inboxOverlay');
+        if (panel.classList.contains('translate-x-full')) {
+            renderInbox(); // Pintar la lista antes de mostrar
+            panel.classList.remove('translate-x-full');
+            overlay.classList.remove('hidden');
+        } else {
+            panel.classList.add('translate-x-full');
+            overlay.classList.add('hidden');
+        }
+    }
+
+    function getContacts() {
+        return JSON.parse(localStorage.getItem('crm_contacts')) || [];
+    }
+    
+    function saveContact(contact) {
+        const contacts = getContacts();
+        contacts.unshift(contact); // Agregar al principio
+        localStorage.setItem('crm_contacts', JSON.stringify(contacts));
+        updateInboxCounter();
+    }
+
+    function renderInbox() {
+        const contacts = getContacts();
+        const listObj = document.getElementById('inboxList');
+        const emptyMsg = document.getElementById('emptyInboxMsg');
+        
+        if (contacts.length > 0) {
+            if (emptyMsg) emptyMsg.style.display = 'none';
+            // Limpiar y Renderizar manteniendo el mensaje vacío oculto
+            listObj.innerHTML = '<div id="emptyInboxMsg" class="hidden flex flex-col items-center justify-center mt-10 opacity-50"><span class="material-symbols-outlined text-5xl mb-2">person_off</span><p class="text-sm text-center font-medium">La bandeja está vacía.</p></div>';
+            
+            contacts.forEach((c) => {
+                const mapLink = c.location ? (c.location.startsWith('http') ? c.location : `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(c.location)}`) : '#';
+                
+                listObj.innerHTML += `
+                <div class="bg-surface-container-lowest border border-outline-variant/30 rounded-xl p-4 shadow-sm relative group">
+                    <div class="flex items-start gap-3">
+                        <div class="w-10 h-10 rounded-full bg-primary/10 text-primary flex items-center justify-center font-bold text-lg shrink-0 uppercase">
+                            ${c.name.charAt(0)}
+                        </div>
+                        <div class="flex flex-col min-w-0 w-full overflow-hidden">
+                            <h3 class="text-sm font-bold text-on-surface truncate">${c.name}</h3>
+                            <p class="text-xs text-on-surface-variant flex items-center gap-1 mt-1 truncate"><span class="material-symbols-outlined text-[0.9rem] opacity-70">mail</span> ${c.email}</p>
+                            <p class="text-xs text-on-surface-variant flex items-center gap-1 mt-0.5 truncate"><span class="material-symbols-outlined text-[0.9rem] opacity-70">call</span> ${c.phone}</p>
+                            ${c.location ? `<a href="${mapLink}" target="_blank" class="mt-2 text-[0.65rem] font-bold uppercase tracking-wider bg-surface-container hover:bg-surface-dim text-primary py-1.5 px-3 rounded-lg flex items-center gap-1 transition-colors w-max"><span class="material-symbols-outlined text-[1rem]">location_on</span> Ver Ubicación</a>` : ''}
+                        </div>
+                    </div>
+                </div>`;
+            });
+        } else {
+            if (emptyMsg) emptyMsg.style.display = 'flex';
+        }
+    }
+
+    function updateInboxCounter() {
+        const count = getContacts().length;
+        const badge = document.getElementById('inboxCount');
+        if (badge) badge.innerText = count;
+    }
+
+    // Inicializar contador al cargar página
+    document.addEventListener('DOMContentLoaded', updateInboxCounter);
 
     // Lógica para cambiar entre pestañas de Actividad y filtrar contenido
     const tabs = document.querySelectorAll('.pb-1 > button');
