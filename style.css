@@ -175,21 +175,70 @@ form {
     gap: 4px;
 }
 
-/* Grupos del Formulario con Floating Label y Soporte para Fondo Blanco */
-.form-group {
-    position: relative;
-    display: flex;
-    flex-direction: column;
-    margin-bottom: 22px;
-    margin-top: 10px; /* Brinda espacio para que flote la etiqueta */
+/* Secciones de Formulario (Estructuración Visual) */
+.form-section {
+    margin-bottom: 24px;
+    border-bottom: 1px dashed var(--border-color);
+    padding-bottom: 16px;
 }
 
-/* INPUTS Y TEXTAREA: Fondo Blanco y Texto Negro (Máxima Legibilidad) */
+.form-section:last-of-type {
+    border-bottom: none;
+    margin-bottom: 8px;
+    padding-bottom: 0;
+}
+
+.form-section h3 {
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--accent-color);
+    margin: 0 0 18px 0;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.form-group-row {
+    display: flex;
+    gap: 12px;
+}
+
+.form-group-row .form-group {
+    flex: 1;
+    min-width: 0;
+}
+
+/* Grupos del Formulario con Etiquetas Fijas Sobre las Cajas (Legibilidad Óptima) */
+.form-group {
+    display: flex;
+    flex-direction: column;
+    margin-bottom: 20px;
+}
+
+/* Títulos/Etiquetas de los campos posicionados fija y claramente arriba */
+.form-group label {
+    order: 1;
+    color: #ffffff; /* Blanco para contrastar en el fondo oscuro */
+    font-size: 14px;
+    font-weight: 600;
+    margin-bottom: 8px; /* Espacio limpio entre el título y la caja de texto */
+    transition: var(--transition);
+}
+
+/* INPUTS Y TEXTAREA: Fondo Blanco y Texto Negro (Legibilidad Máxima) */
+.form-group input,
+.form-group textarea,
+.form-group .select-wrapper {
+    order: 2;
+}
+
 .form-group input,
 .form-group textarea,
 .form-group select {
     width: 100%;
-    padding: 18px 16px 8px 16px;
+    padding: 14px 16px; /* Padding centrado y balanceado */
     background: #ffffff !important;
     color: #000000 !important;
     border: 1.5px solid #d1d1d6;
@@ -207,19 +256,7 @@ form {
     height: 105px;
 }
 
-.form-group label {
-    position: absolute;
-    left: 16px;
-    top: 15px;
-    color: #6e6e73; /* Gris de alto contraste sobre fondo blanco */
-    font-size: 15px;
-    font-weight: 400;
-    pointer-events: none;
-    transition: var(--transition);
-    transform-origin: left top;
-}
-
-/* Efectos de Foco y Llenado */
+/* Efectos de Foco */
 .form-group input:focus,
 .form-group textarea:focus,
 .form-group select:focus {
@@ -227,16 +264,9 @@ form {
     box-shadow: 0 0 0 4px var(--accent-glow);
 }
 
-/* Flota la etiqueta por encima del input (sobre el contenedor oscuro) */
-.form-group input:focus ~ label,
-.form-group input:not(:placeholder-shown) ~ label,
-.form-group textarea:focus ~ label,
-.form-group textarea:not(:placeholder-shown) ~ label,
-.form-group select:focus ~ label,
-.form-group select.has-value ~ label {
-    transform: translateY(-24px) scale(0.8);
+/* Cambio de color del título cuando su campo correspondiente está enfocado */
+.form-group:focus-within label {
     color: var(--accent-color);
-    font-weight: 600;
 }
 
 /* Validaciones Visuales */
@@ -251,6 +281,7 @@ form {
 }
 
 .error-message {
+    order: 3;
     color: #ff453a;
     font-size: 11px;
     margin-top: 4px;
@@ -279,14 +310,14 @@ form {
     font-family: 'Material Icons';
     position: absolute;
     right: 16px;
-    top: 14px;
+    top: 12px; /* Centrado en select de 43px de alto */
     color: #3a3a3c;
     font-size: 20px;
     pointer-events: none;
     transition: var(--transition);
 }
 
-.form-group select:focus + .select-wrapper::after {
+.select-wrapper:focus-within::after {
     color: var(--accent-color);
     transform: rotate(180deg);
 }

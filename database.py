@@ -1,4 +1,4 @@
-# database.py - Gestión de Base de Datos SQLite para CRM de Seguridad
+# database.py - Gestión de SQLite con la tabla base_rpmkt para CRM de Seguridad
 
 import sqlite3
 import os
@@ -6,80 +6,83 @@ import os
 DB_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'crm_seguridad.db')
 
 def init_db():
-    """Inicializa la base de datos y crea las tablas necesarias."""
+    """Inicializa la base de datos y crea la tabla base_rpmkt."""
     conn = sqlite3.connect(DB_PATH)
     cursor = conn.cursor()
     
-    # Habilitar claves foráneas
-    cursor.execute("PRAGMA foreign_keys = ON;")
-    
-    # Crear tabla de clientes
+    # Crear la tabla base_rpmkt con las 14 columnas requeridas
     cursor.execute("""
-    CREATE TABLE IF NOT EXISTS clientes (
+    CREATE TABLE IF NOT EXISTS base_rpmkt (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
-        nombre TEXT NOT NULL,
+        procedencia TEXT,
+        estado TEXT,
+        cliente TEXT NOT NULL,
         telefono TEXT NOT NULL UNIQUE,
-        estado TEXT NOT NULL,
-        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-    );
-    """)
-    
-    # Crear tabla de historial de llamadas (con Clave Foránea a clientes)
-    cursor.execute("""
-    CREATE TABLE IF NOT EXISTS historial_llamadas (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        cliente_id INTEGER NOT NULL,
-        estado TEXT NOT NULL,
+        fecha TEXT,
+        hora TEXT,
+        distrito TEXT,
+        direccion TEXT,
+        archivo_origen TEXT DEFAULT 'BASE_RPMKT_2.xlsx',
+        contacto_observacion TEXT DEFAULT CURRENT_TIMESTAMP,
         observacion TEXT,
-        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-        FOREIGN KEY (cliente_id) REFERENCES clientes (id) ON DELETE CASCADE
+        estado_seguimiento TEXT,
+        historial_contactos TEXT,
+        accion_contacto TEXT
     );
     """)
     
     conn.commit()
     conn.close()
-    print("Base de datos SQLite inicializada exitosamente.")
+    print("Base de datos SQLite inicializada con la tabla 'base_rpmkt'.")
 
-def save_cliente(nombre, telefono, estado, observacion):
+def save_cliente(procedencia, estado, cliente, telefono, fecha, hora, distrito, 
+                 direccion, archivo_origen, contacto_observacion, observacion, 
+                 estado_seguimiento, historial_contactos, accion_contacto):
     """
-    Guarda o actualiza un cliente.
-    Si el teléfono ya existe, actualiza el nombre y estado,
-    y agrega un nuevo registro en el historial de llamadas.
+    Guarda o actualiza un registro en la tabla base_rpmkt.
+    Si el teléfono ya existe, realiza una actualización (UPSERT manual).
     """
     conn = sqlite3.connect(DB_PATH)
     cursor = conn.cursor()
-    cursor.execute("PRAGMA foreign_keys = ON;")
     
+    # Asignar valores por defecto si vienen vacíos
+    if not archivo_origen:
+        archivo_origen = 'BASE_RPMKT_2.xlsx'
+    if not contacto_observacion:
+        contacto_observacion = 'now()' # Valor predeterminado según especificación
+        
     try:
-        # Buscar cliente existente por teléfono
-        cursor.execute("SELECT id FROM clientes WHERE telefono = ?", (telefono,))
+        # Buscar registro existente por teléfono
+        cursor.execute("SELECT id FROM base_rpmkt WHERE telefono = ?", (telefono,))
         row = cursor.fetchone()
         
         if row:
-            cliente_id = row[0]
-            # Actualizar nombre, estado y timestamp de actualización del cliente
+            # Actualizar registro existente
             cursor.execute("""
-            UPDATE clientes 
-            SET nombre = ?, estado = ?, updated_at = CURRENT_TIMESTAMP 
+            UPDATE base_rpmkt 
+            SET procedencia = ?, estado = ?, cliente = ?, fecha = ?, hora = ?, 
+                distrito = ?, direccion = ?, archivo_origen = ?, contacto_observacion = ?, 
+                observacion = ?, estado_seguimiento = ?, historial_contactos = ?, accion_contacto = ?
             WHERE id = ?
-            """, (nombre, estado, cliente_id))
+            """, (procedencia, estado, cliente, fecha, hora, distrito, direccion, 
+                  archivo_origen, contacto_observacion, observacion, estado_seguimiento, 
+                  historial_contactos, accion_contacto, row[0]))
+            registro_id = row[0]
         else:
-            # Crear nuevo registro de cliente
+            # Crear nuevo registro
             cursor.execute("""
-            INSERT INTO clientes (nombre, telefono, estado) 
-            VALUES (?, ?, ?)
-            """, (nombre, telefono, estado))
-            cliente_id = cursor.lastrowid
+            INSERT INTO base_rpmkt (
+                procedencia, estado, cliente, telefono, fecha, hora, distrito, 
+                direccion, archivo_origen, contacto_observacion, observacion, 
+                estado_seguimiento, historial_contactos, accion_contacto
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            """, (procedencia, estado, cliente, telefono, fecha, hora, distrito, 
+                  direccion, archivo_origen, contacto_observacion, observacion, 
+                  estado_seguimiento, historial_contactos, accion_contacto))
+            registro_id = cursor.lastrowid
             
-        # Insertar registro de historial de llamadas asociado
-        cursor.execute("""
-        INSERT INTO historial_llamadas (cliente_id, estado, observacion) 
-        VALUES (?, ?, ?)
-        """, (cliente_id, estado, observacion))
-        
         conn.commit()
-        return cliente_id
+        return registro_id
     except Exception as e:
         conn.rollback()
         raise e
@@ -88,9 +91,8 @@ def save_cliente(nombre, telefono, estado, observacion):
 
 def get_clientes(estado=None, page=1, per_page=10):
     """
-    Retorna una lista de clientes filtrada por estado y paginada,
-    junto con el total de registros encontrados.
-    Incluye la última observación registrada.
+    Retorna la lista de registros de la tabla base_rpmkt
+    filtrada opcionalmente por estado y paginada de 10 en 10.
     """
     conn = sqlite3.connect(DB_PATH)
     conn.row_factory = sqlite3.Row
@@ -99,8 +101,8 @@ def get_clientes(estado=None, page=1, per_page=10):
     offset = (page - 1) * per_page
     
     # Consultas base
-    query_data = "SELECT id, nombre, telefono, estado, created_at, updated_at FROM clientes"
-    query_count = "SELECT COUNT(*) FROM clientes"
+    query_data = "SELECT * FROM base_rpmkt"
+    query_count = "SELECT COUNT(*) FROM base_rpmkt"
     params = []
     
     if estado:
@@ -108,38 +110,22 @@ def get_clientes(estado=None, page=1, per_page=10):
         query_count += " WHERE estado = ?"
         params.append(estado)
         
-    # Ordenar por fecha de última actualización
-    query_data += " ORDER BY updated_at DESC LIMIT ? OFFSET ?"
+    # Ordenar por id descendente (los más recientes primero)
+    query_data += " ORDER BY id DESC LIMIT ? OFFSET ?"
     data_params = params + [per_page, offset]
     
-    # Obtener conteo total para calcular la paginación
+    # Obtener conteo total
     cursor.execute(query_count, params)
     total_records = cursor.fetchone()[0]
     
-    # Obtener los registros de la página
+    # Obtener los datos
     cursor.execute(query_data, data_params)
     rows = cursor.fetchall()
     
-    clientes_list = []
-    for row in rows:
-        cliente = dict(row)
-        
-        # Consultar la última observación del historial para este cliente
-        cursor.execute("""
-        SELECT observacion, created_at 
-        FROM historial_llamadas 
-        WHERE cliente_id = ? 
-        ORDER BY created_at DESC LIMIT 1
-        """, (cliente['id'],))
-        hist_row = cursor.fetchone()
-        
-        cliente['observacion'] = hist_row['observacion'] if hist_row else ""
-        cliente['ultima_llamada'] = hist_row['created_at'] if hist_row else ""
-        clientes_list.append(cliente)
-        
+    clientes_list = [dict(row) for row in rows]
+    
     conn.close()
     return clientes_list, total_records
 
 if __name__ == '__main__':
-    # Inicializar la base de datos si se corre directamente
     init_db()

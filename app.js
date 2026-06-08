@@ -1,4 +1,4 @@
-// app.js - Lógica interactiva del CRM Móvil de Seguridad
+// app.js - Lógica interactiva del CRM de Seguridad para base_rpmkt
 
 // 1. Inicializar Telegram WebApp
 const tg = window.Telegram.WebApp;
@@ -18,15 +18,26 @@ const tabVerListas = document.getElementById('tabVerListas');
 const contentRegistrar = document.getElementById('contentRegistrar');
 const contentVerListas = document.getElementById('contentVerListas');
 
-// Elementos del DOM - Formulario
+// Elementos del DOM - Formulario (14 campos)
 const crmForm = document.getElementById('crmForm');
-const nombreInput = document.getElementById('nombre');
+const clienteInput = document.getElementById('cliente');
 const telefonoInput = document.getElementById('telefono');
+const distritoInput = document.getElementById('distrito');
+const direccionInput = document.getElementById('direccion');
 const estadoSelect = document.getElementById('estado');
+const estadoSeguimientoSelect = document.getElementById('estado_seguimiento');
+const accionContactoSelect = document.getElementById('accion_contacto');
+const procedenciaInput = document.getElementById('procedencia');
+const archivoOrigenInput = document.getElementById('archivo_origen');
+const fechaInput = document.getElementById('fecha');
+const horaInput = document.getElementById('hora');
+const contactoObservacionInput = document.getElementById('contacto_observacion');
 const observacionInput = document.getElementById('observacion');
+const historialContactosInput = document.getElementById('historial_contactos');
+
 const confettiContainer = document.getElementById('confetti');
 
-// Elementos del DOM - Listado de Clientes y Paginación
+// Elementos del DOM - Listado y Paginación
 const clientsList = document.getElementById('clientsList');
 const filtersContainer = document.getElementById('filtersContainer');
 const btnPrev = document.getElementById('btnPrev');
@@ -34,12 +45,12 @@ const btnNext = document.getElementById('btnNext');
 const pageInfo = document.getElementById('pageInfo');
 const toastContainer = document.getElementById('toast-container');
 
-// 3. Variables de Estado de la Pestaña "Ver Listas"
+// 3. Variables de Estado
 let currentPage = 1;
 let currentFilter = '';
 let totalPages = 1;
 
-// 4. Lógica de Pestañas (Tabs)
+// 4. Lógica de Pestañas
 tabRegistrar.addEventListener('click', () => {
     switchTab('registrar');
 });
@@ -47,7 +58,7 @@ tabRegistrar.addEventListener('click', () => {
 tabVerListas.addEventListener('click', () => {
     switchTab('listas');
     currentPage = 1;
-    fetchClients(); // Cargar la lista automáticamente al abrir la pestaña
+    fetchClients();
 });
 
 function switchTab(tab) {
@@ -64,17 +75,8 @@ function switchTab(tab) {
     }
 }
 
-// 5. Gestión del Select (Floating Label)
-function updateSelectLabel() {
-    if (estadoSelect.value) {
-        estadoSelect.classList.add('has-value');
-    } else {
-        estadoSelect.classList.remove('has-value');
-    }
-}
-updateSelectLabel();
+// Escuchador para "Venta Cerrada 🎉"
 estadoSelect.addEventListener('change', () => {
-    updateSelectLabel();
     if (estadoSelect.value === 'Cerrado') {
         triggerConfetti();
         showToast("¡Excelente! Cierre de venta de seguridad 🏆", "success");
@@ -82,15 +84,15 @@ estadoSelect.addEventListener('change', () => {
     }
 });
 
-// Escuchas para limpiar los errores de validación al escribir
-nombreInput.addEventListener('input', () => {
-    document.getElementById('group-nombre').classList.remove('error');
+// Limpieza de errores de validación al escribir
+clienteInput.addEventListener('input', () => {
+    document.getElementById('group-cliente').classList.remove('error');
 });
 telefonoInput.addEventListener('input', () => {
     document.getElementById('group-telefono').classList.remove('error');
 });
 
-// 6. Validaciones
+// 5. Validaciones
 const valNombre = (val) => val.trim().length >= 3;
 const valTelefono = (val) => {
     const clean = val.replace(/\s+/g, '').replace(/[\-\+]/g, '');
@@ -109,18 +111,18 @@ function validateField(inputElement, validationFn, groupSelector) {
     return isValid;
 }
 
-// 7. Enviar Formulario de Cliente al Servidor
+// 6. Enviar Formulario al Servidor
 crmForm.addEventListener('submit', async (e) => {
     e.preventDefault();
     
-    const isNombreValid = validateField(nombreInput, valNombre, 'group-nombre');
+    const isClienteValid = validateField(clienteInput, valNombre, 'group-cliente');
     const isTelefonoValid = validateField(telefonoInput, valTelefono, 'group-telefono');
     
-    if (!isNombreValid || !isTelefonoValid) {
+    if (!isClienteValid || !isTelefonoValid) {
         showToast("Completa los campos requeridos.", "error");
         playHaptic('notification', 'error');
         
-        // Animación visual de sacudida
+        // Sacudida visual en error
         const container = document.querySelector('.container');
         container.style.animation = 'none';
         setTimeout(() => {
@@ -129,20 +131,25 @@ crmForm.addEventListener('submit', async (e) => {
         return;
     }
     
-    const nombre = nombreInput.value.trim();
-    const telefono = telefonoInput.value.trim();
-    const estado = estadoSelect.value;
-    const observacion = observacionInput.value.trim();
-    
+    // Armar el payload completo con los 14 campos
     const datosCRM = {
-        nombre: nombre,
-        telefono: telefono,
-        estado: estado,
-        observacion: observacion
+        cliente: clienteInput.value.trim(),
+        telefono: telefonoInput.value.trim(),
+        distrito: distritoInput.value.trim(),
+        direccion: direccionInput.value.trim(),
+        estado: estadoSelect.value,
+        estado_seguimiento: estadoSeguimientoSelect.value,
+        accion_contacto: accionContactoSelect.value,
+        procedencia: procedenciaInput.value.trim(),
+        archivo_origen: archivoOrigenInput.value.trim(),
+        fecha: fechaInput.value,
+        hora: horaInput.value,
+        contacto_observacion: contactoObservacionInput.value.trim(),
+        observacion: observacionInput.value.trim(),
+        historial_contactos: historialContactosInput.value.trim()
     };
     
     try {
-        // Enviar a la API del servidor Flask
         const response = await fetch('/api/clientes', {
             method: 'POST',
             headers: {
@@ -154,30 +161,29 @@ crmForm.addEventListener('submit', async (e) => {
         const result = await response.json();
         
         if (response.ok) {
-            showToast("Registro guardado en SQLite", "success");
+            showToast("Guardado en tabla base_rpmkt", "success");
             playHaptic('notification', 'success');
-            if (estado === 'Cerrado') triggerConfetti();
+            if (datosCRM.estado === 'Cerrado') triggerConfetti();
             
-            // Opcional: enviar mediante WebApp de Telegram si está disponible
+            // Opcional: Notificar a Telegram
             try {
                 if (window.Telegram && window.Telegram.WebApp && window.Telegram.WebApp.sendData) {
-                    // Espera un momento para que el usuario visualice el Toast antes de interactuar con el bot
                     setTimeout(() => {
                         tg.sendData(JSON.stringify(datosCRM));
                     }, 1000);
                 }
             } catch (err) {
-                console.log("No se pudo enviar datos por sendData:", err);
+                console.log("No se pudo enviar sendData:", err);
             }
             
-            // Resetear formulario
+            // Resetear
             crmForm.reset();
-            setTimeout(() => {
-                updateSelectLabel();
-            }, 50);
+            
+            // Mantener archivo origen por defecto
+            document.getElementById('archivo_origen').value = 'BASE_RPMKT_2.xlsx';
             
         } else {
-            showToast(result.error || "Error al guardar el cliente.", "error");
+            showToast(result.error || "Error al registrar cliente.", "error");
             playHaptic('notification', 'error');
         }
         
@@ -188,12 +194,12 @@ crmForm.addEventListener('submit', async (e) => {
     }
 });
 
-// 8. Consultar Clientes con Filtros y Paginación
+// 7. Cargar Registros Paginados
 async function fetchClients() {
     clientsList.innerHTML = `
         <div style="text-align: center; padding: 30px; color: var(--text-muted);">
             <span class="material-icons" style="animation: spin 1s infinite linear; font-size: 24px;">sync</span>
-            <p style="margin-top: 8px; font-size: 13px;">Cargando clientes...</p>
+            <p style="margin-top: 8px; font-size: 13px;">Consultando base_rpmkt...</p>
         </div>
     `;
     
@@ -206,15 +212,15 @@ async function fetchClients() {
             totalPages = data.pages;
             updatePaginationControls();
         } else {
-            clientsList.innerHTML = `<div style="text-align: center; padding: 20px; color: var(--color-no-contesta);">Error al cargar los datos.</div>`;
+            clientsList.innerHTML = `<div style="text-align: center; padding: 20px; color: var(--color-no-contesta);">Error al obtener datos del servidor.</div>`;
         }
     } catch (error) {
         console.error("Error al cargar clientes:", error);
-        clientsList.innerHTML = `<div style="text-align: center; padding: 20px; color: var(--color-no-contesta);">Error de red con el servidor.</div>`;
+        clientsList.innerHTML = `<div style="text-align: center; padding: 20px; color: var(--color-no-contesta);">Error de red con el backend.</div>`;
     }
 }
 
-// 9. Renderizar Clientes y Enlaces de Acción Directa
+// 8. Renderizar Tarjetas de Cliente con Detalles Adicionales
 function renderClients(clientes) {
     clientsList.innerHTML = '';
     
@@ -222,7 +228,7 @@ function renderClients(clientes) {
         clientsList.innerHTML = `
             <div style="text-align: center; padding: 40px 20px; color: var(--text-muted);">
                 <span class="material-icons" style="font-size: 36px; opacity: 0.5;">people_outline</span>
-                <p style="margin-top: 8px; font-size: 14px;">No se encontraron clientes para este estado.</p>
+                <p style="margin-top: 8px; font-size: 14px;">No hay prospectos en este estado.</p>
             </div>
         `;
         return;
@@ -236,23 +242,36 @@ function renderClients(clientes) {
         if (client.estado === 'Enviar Información') badgeClass = 'enviar-info';
         if (client.estado === 'Cerrado') badgeClass = 'cerrado';
         
-        // Limpiar teléfono para links móviles
         const cleanPhone = client.telefono.replace(/[^\d+]/g, '');
         
-        // Mensaje de seguimiento personalizado para asesores de seguridad
-        const baseMsg = `Hola ${client.nombre}, le saluda su asesor de seguridad. Quería dar seguimiento a su requerimiento de protección de instalaciones. ¿Cómo podemos ayudarle?`;
+        // Mensaje de WhatsApp personalizado
+        const baseMsg = `Hola ${client.cliente}, le saluda su asesor de seguridad. Quería dar seguimiento a su requerimiento de protección de instalaciones. ¿Cómo podemos ayudarle?`;
         const encodedMsg = encodeURIComponent(baseMsg);
         
         const card = document.createElement('div');
         card.className = 'client-card';
+        
+        // Construir detalles geográficos y de seguimiento
+        const extraInfo = [];
+        if (client.distrito) extraInfo.push(`📍 Distrito: ${escapeHTML(client.distrito)}`);
+        if (client.estado_seguimiento) extraInfo.push(`📝 Seg: ${escapeHTML(client.estado_seguimiento)}`);
+        if (client.accion_contacto) extraInfo.push(`⚡ Acc: ${escapeHTML(client.accion_contacto)}`);
+        
         card.innerHTML = `
             <div class="client-header">
                 <div>
-                    <div class="client-name">${escapeHTML(client.nombre)}</div>
+                    <div class="client-name">${escapeHTML(client.cliente)}</div>
                     <div class="client-phone">${escapeHTML(client.telefono)}</div>
                 </div>
                 <span class="badge ${badgeClass}">${client.estado}</span>
             </div>
+            
+            ${extraInfo.length > 0 ? `
+                <div style="font-size: 11px; color: var(--text-muted); display: flex; flex-direction: column; gap: 2px; margin-top: 2px;">
+                    ${extraInfo.map(info => `<span>${info}</span>`).join('')}
+                </div>
+            ` : ''}
+            
             ${client.observacion ? `<div class="client-obs">${escapeHTML(client.observacion)}</div>` : ''}
             
             <div class="client-actions">
@@ -270,7 +289,7 @@ function renderClients(clientes) {
     });
 }
 
-// 10. Controles de Paginación
+// 9. Controles de Paginación y Filtros
 function updatePaginationControls() {
     pageInfo.textContent = `Pág. ${currentPage} de ${totalPages || 1}`;
     btnPrev.disabled = currentPage <= 1;
@@ -293,12 +312,10 @@ btnNext.addEventListener('click', () => {
     }
 });
 
-// 11. Eventos de los Botones de Filtro
 filtersContainer.addEventListener('click', (e) => {
     const btn = e.target.closest('.filter-btn');
     if (!btn) return;
     
-    // Cambiar botón activo
     document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
     btn.classList.add('active');
     
@@ -308,8 +325,9 @@ filtersContainer.addEventListener('click', (e) => {
     playHaptic('impact', 'light');
 });
 
-// 12. Helper para Sanitizar HTML
+// Helpers
 function escapeHTML(str) {
+    if (!str) return '';
     return str.replace(/[&<>'"]/g, 
         tag => ({
             '&': '&amp;',
@@ -321,7 +339,6 @@ function escapeHTML(str) {
     );
 }
 
-// 13. Toasts y Confeti
 function showToast(message, type = 'success') {
     const toast = document.createElement('div');
     toast.className = `toast ${type}`;

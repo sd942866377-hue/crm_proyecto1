@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>CRM Seguridad Móvil</title>
+    <title>CRM Seguridad - base_rpmkt</title>
     
     <!-- Telegram WebApp SDK -->
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
@@ -11,18 +11,18 @@
     <!-- Google Fonts & Material Icons -->
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
     
-    <!-- Estilos Premium Adaptables -->
+    <!-- Estilos Premium -->
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
     <div class="container">
-        <!-- Contenedor para Confeti (Venta Cerrada) -->
+        <!-- Contenedor para Confeti -->
         <div id="confetti" class="confetti-container"></div>
         
         <header>
             <h1><span class="material-icons" style="font-size: 26px;">security</span> CRM Seguridad</h1>
-            <p>Control de Ventas y Seguimiento Móvil</p>
+            <p>Registro y Seguimiento en Tabla base_rpmkt</p>
         </header>
 
         <!-- Barra de Pestañas (Tabs) -->
@@ -40,45 +40,128 @@
         <!-- Pestaña 1: Registro -->
         <div class="tab-content active" id="contentRegistrar">
             <form id="crmForm" novalidate>
-                <!-- Nombre del Cliente -->
-                <div class="form-group" id="group-nombre">
-                    <input type="text" id="nombre" placeholder=" " required autocomplete="off">
-                    <label for="nombre">Nombre del Cliente</label>
-                    <div class="error-message">
-                        <span class="material-icons" style="font-size: 12px;">error</span>
-                        Nombre inválido (mínimo 3 caracteres)
+                
+                <!-- Sección 1: Datos del Cliente -->
+                <div class="form-section">
+                    <h3><span class="material-icons">account_circle</span> 1. Datos del Cliente</h3>
+                    
+                    <div class="form-group" id="group-cliente">
+                        <label for="cliente">Nombre del Cliente</label>
+                        <input type="text" id="cliente" placeholder="Ej. Henry Cortés" required autocomplete="off">
+                        <div class="error-message">
+                            <span class="material-icons" style="font-size: 12px;">error</span>
+                            Nombre de cliente requerido (mínimo 3 caracteres)
+                        </div>
+                    </div>
+
+                    <div class="form-group" id="group-telefono">
+                        <label for="telefono">Teléfono / Celular</label>
+                        <input type="tel" id="telefono" placeholder="Ej. 934933366" required autocomplete="off">
+                        <div class="error-message">
+                            <span class="material-icons" style="font-size: 12px;">error</span>
+                            Número requerido (7 a 15 dígitos)
+                        </div>
+                    </div>
+
+                    <div class="form-group-row">
+                        <div class="form-group" id="group-distrito">
+                            <label for="distrito">Distrito</label>
+                            <input type="text" id="distrito" placeholder="Ej. Surco" autocomplete="off">
+                        </div>
+                        <div class="form-group" id="group-direccion">
+                            <label for="direccion">Dirección</label>
+                            <input type="text" id="direccion" placeholder="Ej. Av. Primavera 123" autocomplete="off">
+                        </div>
                     </div>
                 </div>
 
-                <!-- Teléfono / Celular -->
-                <div class="form-group" id="group-telefono">
-                    <input type="tel" id="telefono" placeholder=" " required autocomplete="off">
-                    <label for="telefono">Teléfono / Celular</label>
-                    <div class="error-message">
-                        <span class="material-icons" style="font-size: 12px;">error</span>
-                        Teléfono inválido (de 7 a 15 números)
+                <!-- Sección 2: Estado y Seguimiento -->
+                <div class="form-section">
+                    <h3><span class="material-icons">assignment_turned_in</span> 2. Estado y Seguimiento</h3>
+                    
+                    <div class="form-group" id="group-estado">
+                        <label for="estado">Estado de la Venta</label>
+                        <div class="select-wrapper">
+                            <select id="estado" required>
+                                <option value="Interesado" selected>Interesado</option>
+                                <option value="En Proceso">En Proceso / Cotizado</option>
+                                <option value="No Contesta">No Contesta</option>
+                                <option value="Llamar en Fecha">Llamar en Fecha</option>
+                                <option value="Enviar Información">Enviar Información</option>
+                                <option value="Cerrado">Venta Cerrada 🎉</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="form-group" id="group-estado-seguimiento">
+                        <label for="estado_seguimiento">Estado del Seguimiento</label>
+                        <div class="select-wrapper">
+                            <select id="estado_seguimiento">
+                                <option value="Cliente interesado" selected>Cliente interesado</option>
+                                <option value="No contestó">No contestó</option>
+                                <option value="Llamar mañana">Llamar mañana</option>
+                                <option value="Visita programada">Visita programada</option>
+                                <option value="Tiene Verisure">Tiene Verisure</option>
+                                <option value="Esperar respuesta">Esperar respuesta</option>
+                                <option value="Instalación pendiente">Instalación pendiente</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="form-group" id="group-accion-contacto">
+                        <label for="accion_contacto">Acción del Contacto</label>
+                        <div class="select-wrapper">
+                            <select id="accion_contacto">
+                                <option value="Llamada realizada" selected>Llamada realizada</option>
+                                <option value="WhatsApp enviado">WhatsApp enviado</option>
+                                <option value="No contestó">No contestó</option>
+                                <option value="Volver a llamar">Volver a llamar</option>
+                                <option value="Cliente respondió">Cliente respondió</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="form-group-row">
+                        <div class="form-group" id="group-procedencia">
+                            <label for="procedencia">Procedencia</label>
+                            <input type="text" id="procedencia" placeholder="Ej. Facebook Ads" autocomplete="off">
+                        </div>
+                        <div class="form-group" id="group-archivo-origen">
+                            <label for="archivo_origen">Archivo Origen</label>
+                            <input type="text" id="archivo_origen" value="BASE_RPMKT_2.xlsx" autocomplete="off">
+                        </div>
                     </div>
                 </div>
 
-                <!-- Estado de la Venta -->
-                <div class="form-group" id="group-estado">
-                    <div class="select-wrapper">
-                        <select id="estado" required>
-                            <option value="Interesado" selected>Interesado</option>
-                            <option value="En Proceso">En Proceso / Cotizado</option>
-                            <option value="No Contesta">No Contesta</option>
-                            <option value="Llamar en Fecha">Llamar en Fecha</option>
-                            <option value="Enviar Información">Enviar Información</option>
-                            <option value="Cerrado">Venta Cerrada 🎉</option>
-                        </select>
+                <!-- Sección 3: Programación y Observaciones -->
+                <div class="form-section">
+                    <h3><span class="material-icons">event_note</span> 3. Programación y Notas</h3>
+                    
+                    <div class="form-group-row">
+                        <div class="form-group" id="group-fecha">
+                            <label for="fecha">Fecha de Visita/Contacto</label>
+                            <input type="date" id="fecha">
+                        </div>
+                        <div class="form-group" id="group-hora">
+                            <label for="hora">Hora de Visita/Contacto</label>
+                            <input type="time" id="hora">
+                        </div>
                     </div>
-                    <label for="estado">Estado de la Venta</label>
-                </div>
 
-                <!-- Observaciones -->
-                <div class="form-group" id="group-observacion">
-                    <textarea id="observacion" placeholder=" "></textarea>
-                    <label for="observacion">Observaciones del Caso / Llamada</label>
+                    <div class="form-group" id="group-contacto-observacion">
+                        <label for="contacto_observacion">Contacto Observación (Fecha registro)</label>
+                        <input type="text" id="contacto_observacion" placeholder="now()" autocomplete="off">
+                    </div>
+
+                    <div class="form-group" id="group-observacion">
+                        <label for="observacion">Observaciones Generales</label>
+                        <textarea id="observacion" placeholder="Detalles de la llamada, cotización, etc."></textarea>
+                    </div>
+
+                    <div class="form-group" id="group-historial-contactos">
+                        <label for="historial_contactos">Historial de Contactos</label>
+                        <textarea id="historial_contactos" placeholder="Historial previo de llamadas y contactos del asesor..."></textarea>
+                    </div>
                 </div>
 
                 <!-- Botón de Envío -->
