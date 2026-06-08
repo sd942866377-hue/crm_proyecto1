@@ -12,6 +12,24 @@ try {
     console.warn("Telegram WebApp no inicializado (Ejecutándose en navegador)");
 }
 
+// Determinar la URL base de la API (soporte para despliegue en GitHub Pages u orígenes remotos)
+let API_BASE_URL = '';
+if (window.location.hostname === '7-hue.github.io') {
+    API_BASE_URL = localStorage.getItem('api_backend_url') || '';
+    if (!API_BASE_URL) {
+        const inputUrl = prompt(
+            "Se detectó ejecución desde GitHub Pages.\n\n" +
+            "Por favor, ingresa la URL de tu backend local (Flask/ngrok) para conectar la base de datos:\n" +
+            "(Ejemplo: https://tu-subdominio.ngrok-free.app)"
+        );
+        if (inputUrl) {
+            API_BASE_URL = inputUrl.trim().replace(/\/$/, '');
+            localStorage.setItem('api_backend_url', API_BASE_URL);
+        }
+    }
+}
+
+
 // 2. Elementos del DOM - Pestañas
 const tabRegistrar = document.getElementById('tabRegistrar');
 const tabVerListas = document.getElementById('tabVerListas');
@@ -150,7 +168,7 @@ crmForm.addEventListener('submit', async (e) => {
     };
     
     try {
-        const response = await fetch('/api/clientes', {
+        const response = await fetch(`${API_BASE_URL}/api/clientes`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
@@ -204,7 +222,7 @@ async function fetchClients() {
     `;
     
     try {
-        const response = await fetch(`/api/clientes?estado=${encodeURIComponent(currentFilter)}&page=${currentPage}`);
+        const response = await fetch(`${API_BASE_URL}/api/clientes?estado=${encodeURIComponent(currentFilter)}&page=${currentPage}`);
         const data = await response.json();
         
         if (response.ok) {

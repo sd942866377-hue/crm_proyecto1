@@ -16,6 +16,13 @@ database.init_db()
 # 2. Configuración de Flask
 app = Flask(__name__, static_folder='.', static_url_path='')
 
+@app.after_request
+def after_request(response):
+    response.headers.add('Access-Control-Allow-Origin', '*')
+    response.headers.add('Access-Control-Allow-Headers', 'Content-Type,Authorization')
+    response.headers.add('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE,OPTIONS')
+    return response
+
 @app.route('/')
 def index():
     """Ruta raíz que sirve el frontend de la WebApp."""
