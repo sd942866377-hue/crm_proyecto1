@@ -209,6 +209,9 @@ crmForm.addEventListener('submit', async (e) => {
         console.error("Error de red:", error);
         showToast("Error de conexión con el backend", "error");
         playHaptic('notification', 'error');
+        if (window.location.hostname === '7-hue.github.io') {
+            localStorage.removeItem('api_backend_url');
+        }
     }
 });
 
@@ -234,7 +237,14 @@ async function fetchClients() {
         }
     } catch (error) {
         console.error("Error al cargar clientes:", error);
-        clientsList.innerHTML = `<div style="text-align: center; padding: 20px; color: var(--color-no-contesta);">Error de red con el backend.</div>`;
+        clientsList.innerHTML = `
+            <div style="text-align: center; padding: 20px; color: var(--color-no-contesta);">
+                <p>Error de red con el backend.</p>
+                <button onclick="localStorage.removeItem('api_backend_url'); location.reload();" style="margin-top: 8px; padding: 8px 14px; background: #ff453a; border: none; border-radius: 10px; color: #ffffff; cursor: pointer; font-family: var(--font-family); font-weight: 600; font-size: 12px;">
+                    Restablecer URL de API
+                </button>
+            </div>
+        `;
     }
 }
 
