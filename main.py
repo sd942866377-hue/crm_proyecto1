@@ -3,7 +3,8 @@
 import os
 import math
 import threading
-from flask import Flask, request, jsonify, send_from_directory
+import hmac
+from flask import Flask, request, jsonify, send_from_directory, Response
 import telebot
 from telebot.types import ReplyKeyboardMarkup, KeyboardButton, WebAppInfo
 
@@ -15,6 +16,27 @@ database.init_db()
 
 # 2. Configuración de Flask
 app = Flask(__name__, static_folder='.', static_url_path='')
+
+# Protección con contraseña (se activa si se define CRM_PASSWORD en variables de entorno)
+CRM_USUARIO = os.environ.get('CRM_USUARIO', 'admin')
+CRM_PASSWORD = os.environ.get('CRM_PASSWORD', '')
+
+# Archivos que Android necesita descargar sin contraseña para instalar la app
+RUTAS_PUBLICAS = {'/manifest.json', '/sw.js', '/icon-192.png', '/icon-512.png'}
+
+@app.before_request
+def requerir_login():
+    """Pide usuario y contraseña (HTTP Basic) antes de mostrar el CRM."""
+    # Nunca servir la base de datos ni el código del servidor como archivos estáticos
+    if request.path.lower().endswith(('.db', '.py', '.pyc', '.txt', '.md')) or '/.' in request.path:
+        return Response('No encontrado', 404)
+    if not CRM_PASSWORD or request.path in RUTAS_PUBLICAS or request.method == 'OPTIONS':
+        return None
+    auth = request.authorization
+    if auth and hmac.compare_digest(auth.username or '', CRM_USUARIO) \
+            and hmac.compare_digest(auth.password or '', CRM_PASSWORD):
+        return None
+    return Response('Acceso restringido', 401, {'WWW-Authenticate': 'Basic realm="CRM Seguridad"'})
 
 @app.after_request
 def after_request(response):

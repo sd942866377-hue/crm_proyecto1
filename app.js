@@ -1,15 +1,22 @@
 // app.js - Lógica interactiva del CRM de Seguridad para base_rpmkt
 
 // 1. Inicializar Telegram WebApp
-const tg = window.Telegram.WebApp;
+const tg = (window.Telegram && window.Telegram.WebApp) || {};
 try {
-    tg.expand();
-    tg.ready();
+    if (tg.expand) tg.expand();
+    if (tg.ready) tg.ready();
     if (tg.themeParams && Object.keys(tg.themeParams).length > 0) {
         document.body.classList.add('telegram');
     }
 } catch (e) {
     console.warn("Telegram WebApp no inicializado (Ejecutándose en navegador)");
+}
+
+// Registrar Service Worker para poder instalar el CRM como app en Android
+if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+        navigator.serviceWorker.register('sw.js').catch((err) => console.log('SW no registrado:', err));
+    });
 }
 
 // Determinar la URL base de la API (soporte para despliegue en GitHub Pages u orígenes remotos)
