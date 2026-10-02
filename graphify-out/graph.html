@@ -1,0 +1,360 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>graphify - graphify-out/graph.html</title>
+<script src="https://unpkg.com/vis-network@9.1.6/standalone/umd/vis-network.min.js"
+        integrity="sha384-Ux6phic9PEHJ38YtrijhkzyJ8yQlH8i/+buBR8s3mAZOJrP1gwyvAcIYl3GWtpX1"
+        crossorigin="anonymous"></script>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: #0f0f1a; color: #e0e0e0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; display: flex; height: 100vh; overflow: hidden; }
+  #graph { flex: 1; }
+  #sidebar { width: 280px; background: #1a1a2e; border-left: 1px solid #2a2a4e; display: flex; flex-direction: column; overflow: hidden; }
+  #search-wrap { padding: 12px; border-bottom: 1px solid #2a2a4e; }
+  #search { width: 100%; background: #0f0f1a; border: 1px solid #3a3a5e; color: #e0e0e0; padding: 7px 10px; border-radius: 6px; font-size: 13px; outline: none; }
+  #search:focus { border-color: #4E79A7; }
+  #search-results { max-height: 140px; overflow-y: auto; padding: 4px 12px; border-bottom: 1px solid #2a2a4e; display: none; }
+  .search-item { padding: 4px 6px; cursor: pointer; border-radius: 4px; font-size: 12px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .search-item:hover { background: #2a2a4e; }
+  #info-panel { padding: 14px; border-bottom: 1px solid #2a2a4e; min-height: 140px; }
+  #info-panel h3 { font-size: 13px; color: #aaa; margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.05em; }
+  #info-content { font-size: 13px; color: #ccc; line-height: 1.6; }
+  #info-content .field { margin-bottom: 5px; }
+  #info-content .field b { color: #e0e0e0; }
+  #info-content .empty { color: #555; font-style: italic; }
+  .neighbor-link { display: block; padding: 2px 6px; margin: 2px 0; border-radius: 3px; cursor: pointer; font-size: 12px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; border-left: 3px solid #333; }
+  .neighbor-link:hover { background: #2a2a4e; }
+  #neighbors-list { max-height: 160px; overflow-y: auto; margin-top: 4px; }
+  #legend-wrap { flex: 1; overflow-y: auto; padding: 12px; }
+  #legend-wrap h3 { font-size: 13px; color: #aaa; margin-bottom: 10px; text-transform: uppercase; letter-spacing: 0.05em; }
+  .legend-item { display: flex; align-items: center; gap: 8px; padding: 4px 0; cursor: pointer; border-radius: 4px; font-size: 12px; }
+  .legend-item:hover { background: #2a2a4e; padding-left: 4px; }
+  .legend-item.dimmed { opacity: 0.35; }
+  .legend-dot { width: 12px; height: 12px; border-radius: 50%; flex-shrink: 0; }
+  .legend-label { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .legend-count { color: #666; font-size: 11px; }
+  #stats { padding: 10px 14px; border-top: 1px solid #2a2a4e; font-size: 11px; color: #555; }
+  #legend-controls { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; padding: 4px 0; }
+  #legend-controls label { display: flex; align-items: center; gap: 6px; cursor: pointer; font-size: 12px; color: #aaa; user-select: none; }
+  #legend-controls label:hover { color: #e0e0e0; }
+  .legend-cb, #select-all-cb { appearance: none; -webkit-appearance: none; width: 14px; height: 14px; border: 1.5px solid #3a3a5e; border-radius: 3px; background: #0f0f1a; cursor: pointer; position: relative; flex-shrink: 0; }
+  .legend-cb:checked, #select-all-cb:checked { background: #4E79A7; border-color: #4E79A7; }
+  .legend-cb:checked::after, #select-all-cb:checked::after { content: ''; position: absolute; left: 3.5px; top: 1px; width: 4px; height: 7px; border: solid #fff; border-width: 0 2px 2px 0; transform: rotate(45deg); }
+  #select-all-cb:indeterminate { background: #4E79A7; border-color: #4E79A7; }
+  #select-all-cb:indeterminate::after { content: ''; position: absolute; left: 2px; top: 5px; width: 8px; height: 2px; background: #fff; border: none; transform: none; }
+</style>
+</head>
+<body>
+<div id="graph"></div>
+<div id="sidebar">
+  <div id="search-wrap">
+    <input id="search" type="text" placeholder="Search nodes..." autocomplete="off">
+    <div id="search-results"></div>
+  </div>
+  <div id="info-panel">
+    <h3>Node Info</h3>
+    <div id="info-content"><span class="empty">Click a node to inspect it</span></div>
+  </div>
+  <div id="legend-wrap">
+    <h3>Communities</h3>
+    <div id="legend-controls">
+      <label><input type="checkbox" id="select-all-cb" checked onchange="toggleAllCommunities(!this.checked)">Select All</label>
+    </div>
+    <div id="legend"></div>
+  </div>
+  <div id="stats">78 nodes &middot; 87 edges &middot; 6 communities</div>
+</div>
+<script>
+const RAW_NODES = [{"id": "app_playhaptic", "label": "playHaptic()", "color": {"background": "#4E79A7", "border": "#4E79A7", "highlight": {"background": "#ffffff", "border": "#4E79A7"}}, "size": 10.8, "font": {"size": 0, "color": "#ffffff"}, "title": "playHaptic()", "community": 0, "community_name": "Frontend CRM App", "source_file": "app.js", "file_type": "code", "degree": 1}, {"id": "app_showtoast", "label": "showToast()", "color": {"background": "#4E79A7", "border": "#4E79A7", "highlight": {"background": "#ffffff", "border": "#4E79A7"}}, "size": 10.8, "font": {"size": 0, "color": "#ffffff"}, "title": "showToast()", "community": 0, "community_name": "Frontend CRM App", "source_file": "app.js", "file_type": "code", "degree": 1}, {"id": "app_switchtab", "label": "switchTab()", "color": {"background": "#4E79A7", "border": "#4E79A7", "highlight": {"background": "#ffffff", "border": "#4E79A7"}}, "size": 10.8, "font": {"size": 0, "color": "#ffffff"}, "title": "switchTab()", "community": 0, "community_name": "Frontend CRM App", "source_file": "app.js", "file_type": "code", "degree": 1}, {"id": "app_triggerconfetti", "label": "triggerConfetti()", "color": {"background": "#4E79A7", "border": "#4E79A7", "highlight": {"background": "#ffffff", "border": "#4E79A7"}}, "size": 10.8, "font": {"size": 0, "color": "#ffffff"}, "title": "triggerConfetti()", "community": 0, "community_name": "Frontend CRM App", "source_file": "app.js", "file_type": "code", "degree": 1}, {"id": "app_validatefield", "label": "validateField()", "color": {"background": "#4E79A7", "border": "#4E79A7", "highlight": {"background": "#ffffff", "border": "#4E79A7"}}, "size": 10.8, "font": {"size": 0, "color": "#ffffff"}, "title": "validateField()", "community": 0, "community_name": "Frontend CRM App", "source_file": "app.js", "file_type": "code", "degree": 1}, {"id": "app_valnombre", "label": "valNombre()", "color": {"background": "#4E79A7", "border": "#4E79A7", "highlight": {"background": "#ffffff", "border": "#4E79A7"}}, "size": 10.8, "font": {"size": 0, "color": "#ffffff"}, "title": "valNombre()", "community": 0, "community_name": "Frontend CRM App", "source_file": "app.js", "file_type": "code", "degree": 1}, {"id": "app_valtelefono", "label": "valTelefono()", "color": {"background": "#4E79A7", "border": "#4E79A7", "highlight": {"background": "#ffffff", "border": "#4E79A7"}}, "size": 10.8, "font": {"size": 0, "color": "#ffffff"}, "title": "valTelefono()", "community": 0, "community_name": "Frontend CRM App", "source_file": "app.js", "file_type": "code", "degree": 1}, {"id": "database_get_clientes", "label": "get_clientes()", "color": {"background": "#F28E2B", "border": "#F28E2B", "highlight": {"background": "#ffffff", "border": "#F28E2B"}}, "size": 12.4, "font": {"size": 0, "color": "#ffffff"}, "title": "get_clientes()", "community": 1, "community_name": "Database & Storage Layer", "source_file": "database.py", "file_type": "code", "degree": 3}, {"id": "database_init_db", "label": "init_db()", "color": {"background": "#F28E2B", "border": "#F28E2B", "highlight": {"background": "#ffffff", "border": "#F28E2B"}}, "size": 11.6, "font": {"size": 0, "color": "#ffffff"}, "title": "init_db()", "community": 1, "community_name": "Database & Storage Layer", "source_file": "database.py", "file_type": "code", "degree": 2}, {"id": "database_save_cliente", "label": "save_cliente()", "color": {"background": "#F28E2B", "border": "#F28E2B", "highlight": {"background": "#ffffff", "border": "#F28E2B"}}, "size": 12.4, "font": {"size": 0, "color": "#ffffff"}, "title": "save_cliente()", "community": 1, "community_name": "Database & Storage Layer", "source_file": "database.py", "file_type": "code", "degree": 3}, {"id": "main_index", "label": "index()", "color": {"background": "#F28E2B", "border": "#F28E2B", "highlight": {"background": "#ffffff", "border": "#F28E2B"}}, "size": 12.4, "font": {"size": 0, "color": "#ffffff"}, "title": "index()", "community": 1, "community_name": "Database & Storage Layer", "source_file": "main.py", "file_type": "code", "degree": 3}, {"id": "main_listar_clientes", "label": "listar_clientes()", "color": {"background": "#F28E2B", "border": "#F28E2B", "highlight": {"background": "#ffffff", "border": "#F28E2B"}}, "size": 13.2, "font": {"size": 0, "color": "#ffffff"}, "title": "listar_clientes()", "community": 1, "community_name": "Database & Storage Layer", "source_file": "main.py", "file_type": "code", "degree": 4}, {"id": "main_registrar_cliente", "label": "registrar_cliente()", "color": {"background": "#F28E2B", "border": "#F28E2B", "highlight": {"background": "#ffffff", "border": "#F28E2B"}}, "size": 13.2, "font": {"size": 0, "color": "#ffffff"}, "title": "registrar_cliente()", "community": 1, "community_name": "Database & Storage Layer", "source_file": "main.py", "file_type": "code", "degree": 4}, {"id": "main_after_request", "label": "after_request()", "color": {"background": "#E15759", "border": "#E15759", "highlight": {"background": "#ffffff", "border": "#E15759"}}, "size": 12.4, "font": {"size": 0, "color": "#ffffff"}, "title": "after_request()", "community": 2, "community_name": "Flask & Telegram Backend", "source_file": "main.py", "file_type": "code", "degree": 3}, {"id": "main_run_telegram_bot", "label": "run_telegram_bot()", "color": {"background": "#E15759", "border": "#E15759", "highlight": {"background": "#ffffff", "border": "#E15759"}}, "size": 11.6, "font": {"size": 0, "color": "#ffffff"}, "title": "run_telegram_bot()", "community": 2, "community_name": "Flask & Telegram Backend", "source_file": "main.py", "file_type": "code", "degree": 2}, {"id": "main_send_welcome", "label": "send_welcome()", "color": {"background": "#E15759", "border": "#E15759", "highlight": {"background": "#ffffff", "border": "#E15759"}}, "size": 12.4, "font": {"size": 0, "color": "#ffffff"}, "title": "send_welcome()", "community": 2, "community_name": "Flask & Telegram Backend", "source_file": "main.py", "file_type": "code", "degree": 3}, {"id": "app_escapehtml", "label": "escapeHTML()", "color": {"background": "#EDC948", "border": "#EDC948", "highlight": {"background": "#ffffff", "border": "#EDC948"}}, "size": 11.6, "font": {"size": 0, "color": "#ffffff"}, "title": "escapeHTML()", "community": 5, "community_name": "Client Rendering & Pagination", "source_file": "app.js", "file_type": "code", "degree": 2}, {"id": "app_fetchclients", "label": "fetchClients()", "color": {"background": "#EDC948", "border": "#EDC948", "highlight": {"background": "#ffffff", "border": "#EDC948"}}, "size": 12.4, "font": {"size": 0, "color": "#ffffff"}, "title": "fetchClients()", "community": 5, "community_name": "Client Rendering & Pagination", "source_file": "app.js", "file_type": "code", "degree": 3}, {"id": "app_renderclients", "label": "renderClients()", "color": {"background": "#EDC948", "border": "#EDC948", "highlight": {"background": "#ffffff", "border": "#EDC948"}}, "size": 12.4, "font": {"size": 0, "color": "#ffffff"}, "title": "renderClients()", "community": 5, "community_name": "Client Rendering & Pagination", "source_file": "app.js", "file_type": "code", "degree": 3}, {"id": "app_updatepaginationcontrols", "label": "updatePaginationControls()", "color": {"background": "#EDC948", "border": "#EDC948", "highlight": {"background": "#ffffff", "border": "#EDC948"}}, "size": 11.6, "font": {"size": 0, "color": "#ffffff"}, "title": "updatePaginationControls()", "community": 5, "community_name": "Client Rendering & Pagination", "source_file": "app.js", "file_type": "code", "degree": 2}, {"id": "app", "label": "app.js", "color": {"background": "#4E79A7", "border": "#4E79A7", "highlight": {"background": "#ffffff", "border": "#4E79A7"}}, "size": 40.0, "font": {"size": 12, "color": "#ffffff"}, "title": "app.js", "community": 0, "community_name": "Frontend CRM App", "source_file": "app.js", "file_type": "code", "degree": 37}, {"id": "app_accioncontactoselect", "label": "accionContactoSelect", "color": {"background": "#4E79A7", "border": "#4E79A7", "highlight": {"background": "#ffffff", "border": "#4E79A7"}}, "size": 10.8, "font": {"size": 0, "color": "#ffffff"}, "title": "accionContactoSelect", "community": 0, "community_name": "Frontend CRM App", "source_file": "app.js", "file_type": "code", "degree": 1}, {"id": "app_archivoorigeninput", "label": "archivoOrigenInput", "color": {"background": "#4E79A7", "border": "#4E79A7", "highlight": {"background": "#ffffff", "border": "#4E79A7"}}, "size": 10.8, "font": {"size": 0, "color": "#ffffff"}, "title": "archivoOrigenInput", "community": 0, "community_name": "Frontend CRM App", "source_file": "app.js", "file_type": "code", "degree": 1}, {"id": "app_btnnext", "label": "btnNext", "color": {"background": "#4E79A7", "border": "#4E79A7", "highlight": {"background": "#ffffff", "border": "#4E79A7"}}, "size": 10.8, "font": {"size": 0, "color": "#ffffff"}, "title": "btnNext", "community": 0, "community_name": "Frontend CRM App", "source_file": "app.js", "file_type": "code", "degree": 1}, {"id": "app_btnprev", "label": "btnPrev", "color": {"background": "#4E79A7", "border": "#4E79A7", "highlight": {"background": "#ffffff", "border": "#4E79A7"}}, "size": 10.8, "font": {"size": 0, "color": "#ffffff"}, "title": "btnPrev", "community": 0, "community_name": "Frontend CRM App", "source_file": "app.js", "file_type": "code", "degree": 1}, {"id": "app_clienteinput", "label": "clienteInput", "color": {"background": "#4E79A7", "border": "#4E79A7", "highlight": {"background": "#ffffff", "border": "#4E79A7"}}, "size": 10.8, "font": {"size": 0, "color": "#ffffff"}, "title": "clienteInput", "community": 0, "community_name": "Frontend CRM App", "source_file": "app.js", "file_type": "code", "degree": 1}, {"id": "app_clientslist", "label": "clientsList", "color": {"background": "#4E79A7", "border": "#4E79A7", "highlight": {"background": "#ffffff", "border": "#4E79A7"}}, "size": 10.8, "font": {"size": 0, "color": "#ffffff"}, "title": "clientsList", "community": 0, "community_name": "Frontend CRM App", "source_file": "app.js", "file_type": "code", "degree": 1}, {"id": "app_confetticontainer", "label": "confettiContainer", "color": {"background": "#4E79A7", "border": "#4E79A7", "highlight": {"background": "#ffffff", "border": "#4E79A7"}}, "size": 10.8, "font": {"size": 0, "color": "#ffffff"}, "title": "confettiContainer", "community": 0, "community_name": "Frontend CRM App", "source_file": "app.js", "file_type": "code", "degree": 1}, {"id": "app_contactoobservacioninput", "label": "contactoObservacionInput", "color": {"background": "#4E79A7", "border": "#4E79A7", "highlight": {"background": "#ffffff", "border": "#4E79A7"}}, "size": 10.8, "font": {"size": 0, "color": "#ffffff"}, "title": "contactoObservacionInput", "community": 0, "community_name": "Frontend CRM App", "source_file": "app.js", "file_type": "code", "degree": 1}, {"id": "app_contentregistrar", "label": "contentRegistrar", "color": {"background": "#4E79A7", "border": "#4E79A7", "highlight": {"background": "#ffffff", "border": "#4E79A7"}}, "size": 10.8, "font": {"size": 0, "color": "#ffffff"}, "title": "contentRegistrar", "community": 0, "community_name": "Frontend CRM App", "source_file": "app.js", "file_type": "code", "degree": 1}, {"id": "app_contentverlistas", "label": "contentVerListas", "color": {"background": "#4E79A7", "border": "#4E79A7", "highlight": {"background": "#ffffff", "border": "#4E79A7"}}, "size": 10.8, "font": {"size": 0, "color": "#ffffff"}, "title": "contentVerListas", "community": 0, "community_name": "Frontend CRM App", "source_file": "app.js", "file_type": "code", "degree": 1}, {"id": "app_crmform", "label": "crmForm", "color": {"background": "#4E79A7", "border": "#4E79A7", "highlight": {"background": "#ffffff", "border": "#4E79A7"}}, "size": 10.8, "font": {"size": 0, "color": "#ffffff"}, "title": "crmForm", "community": 0, "community_name": "Frontend CRM App", "source_file": "app.js", "file_type": "code", "degree": 1}, {"id": "app_direccioninput", "label": "direccionInput", "color": {"background": "#4E79A7", "border": "#4E79A7", "highlight": {"background": "#ffffff", "border": "#4E79A7"}}, "size": 10.8, "font": {"size": 0, "color": "#ffffff"}, "title": "direccionInput", "community": 0, "community_name": "Frontend CRM App", "source_file": "app.js", "file_type": "code", "degree": 1}, {"id": "app_distritoinput", "label": "distritoInput", "color": {"background": "#4E79A7", "border": "#4E79A7", "highlight": {"background": "#ffffff", "border": "#4E79A7"}}, "size": 10.8, "font": {"size": 0, "color": "#ffffff"}, "title": "distritoInput", "community": 0, "community_name": "Frontend CRM App", "source_file": "app.js", "file_type": "code", "degree": 1}, {"id": "app_estadoseguimientoselect", "label": "estadoSeguimientoSelect", "color": {"background": "#4E79A7", "border": "#4E79A7", "highlight": {"background": "#ffffff", "border": "#4E79A7"}}, "size": 10.8, "font": {"size": 0, "color": "#ffffff"}, "title": "estadoSeguimientoSelect", "community": 0, "community_name": "Frontend CRM App", "source_file": "app.js", "file_type": "code", "degree": 1}, {"id": "app_estadoselect", "label": "estadoSelect", "color": {"background": "#4E79A7", "border": "#4E79A7", "highlight": {"background": "#ffffff", "border": "#4E79A7"}}, "size": 10.8, "font": {"size": 0, "color": "#ffffff"}, "title": "estadoSelect", "community": 0, "community_name": "Frontend CRM App", "source_file": "app.js", "file_type": "code", "degree": 1}, {"id": "app_fechainput", "label": "fechaInput", "color": {"background": "#4E79A7", "border": "#4E79A7", "highlight": {"background": "#ffffff", "border": "#4E79A7"}}, "size": 10.8, "font": {"size": 0, "color": "#ffffff"}, "title": "fechaInput", "community": 0, "community_name": "Frontend CRM App", "source_file": "app.js", "file_type": "code", "degree": 1}, {"id": "app_filterscontainer", "label": "filtersContainer", "color": {"background": "#4E79A7", "border": "#4E79A7", "highlight": {"background": "#ffffff", "border": "#4E79A7"}}, "size": 10.8, "font": {"size": 0, "color": "#ffffff"}, "title": "filtersContainer", "community": 0, "community_name": "Frontend CRM App", "source_file": "app.js", "file_type": "code", "degree": 1}, {"id": "app_historialcontactosinput", "label": "historialContactosInput", "color": {"background": "#4E79A7", "border": "#4E79A7", "highlight": {"background": "#ffffff", "border": "#4E79A7"}}, "size": 10.8, "font": {"size": 0, "color": "#ffffff"}, "title": "historialContactosInput", "community": 0, "community_name": "Frontend CRM App", "source_file": "app.js", "file_type": "code", "degree": 1}, {"id": "app_horainput", "label": "horaInput", "color": {"background": "#4E79A7", "border": "#4E79A7", "highlight": {"background": "#ffffff", "border": "#4E79A7"}}, "size": 10.8, "font": {"size": 0, "color": "#ffffff"}, "title": "horaInput", "community": 0, "community_name": "Frontend CRM App", "source_file": "app.js", "file_type": "code", "degree": 1}, {"id": "app_observacioninput", "label": "observacionInput", "color": {"background": "#4E79A7", "border": "#4E79A7", "highlight": {"background": "#ffffff", "border": "#4E79A7"}}, "size": 10.8, "font": {"size": 0, "color": "#ffffff"}, "title": "observacionInput", "community": 0, "community_name": "Frontend CRM App", "source_file": "app.js", "file_type": "code", "degree": 1}, {"id": "app_pageinfo", "label": "pageInfo", "color": {"background": "#4E79A7", "border": "#4E79A7", "highlight": {"background": "#ffffff", "border": "#4E79A7"}}, "size": 10.8, "font": {"size": 0, "color": "#ffffff"}, "title": "pageInfo", "community": 0, "community_name": "Frontend CRM App", "source_file": "app.js", "file_type": "code", "degree": 1}, {"id": "app_procedenciainput", "label": "procedenciaInput", "color": {"background": "#4E79A7", "border": "#4E79A7", "highlight": {"background": "#ffffff", "border": "#4E79A7"}}, "size": 10.8, "font": {"size": 0, "color": "#ffffff"}, "title": "procedenciaInput", "community": 0, "community_name": "Frontend CRM App", "source_file": "app.js", "file_type": "code", "degree": 1}, {"id": "app_tabregistrar", "label": "tabRegistrar", "color": {"background": "#4E79A7", "border": "#4E79A7", "highlight": {"background": "#ffffff", "border": "#4E79A7"}}, "size": 10.8, "font": {"size": 0, "color": "#ffffff"}, "title": "tabRegistrar", "community": 0, "community_name": "Frontend CRM App", "source_file": "app.js", "file_type": "code", "degree": 1}, {"id": "app_tabverlistas", "label": "tabVerListas", "color": {"background": "#4E79A7", "border": "#4E79A7", "highlight": {"background": "#ffffff", "border": "#4E79A7"}}, "size": 10.8, "font": {"size": 0, "color": "#ffffff"}, "title": "tabVerListas", "community": 0, "community_name": "Frontend CRM App", "source_file": "app.js", "file_type": "code", "degree": 1}, {"id": "app_telefonoinput", "label": "telefonoInput", "color": {"background": "#4E79A7", "border": "#4E79A7", "highlight": {"background": "#ffffff", "border": "#4E79A7"}}, "size": 10.8, "font": {"size": 0, "color": "#ffffff"}, "title": "telefonoInput", "community": 0, "community_name": "Frontend CRM App", "source_file": "app.js", "file_type": "code", "degree": 1}, {"id": "app_toastcontainer", "label": "toastContainer", "color": {"background": "#4E79A7", "border": "#4E79A7", "highlight": {"background": "#ffffff", "border": "#4E79A7"}}, "size": 10.8, "font": {"size": 0, "color": "#ffffff"}, "title": "toastContainer", "community": 0, "community_name": "Frontend CRM App", "source_file": "app.js", "file_type": "code", "degree": 1}, {"id": "database", "label": "database.py", "color": {"background": "#F28E2B", "border": "#F28E2B", "highlight": {"background": "#ffffff", "border": "#F28E2B"}}, "size": 14.9, "font": {"size": 12, "color": "#ffffff"}, "title": "database.py", "community": 1, "community_name": "Database & Storage Layer", "source_file": "database.py", "file_type": "code", "degree": 6}, {"id": "route", "label": "route", "color": {"background": "#F28E2B", "border": "#F28E2B", "highlight": {"background": "#ffffff", "border": "#F28E2B"}}, "size": 12.4, "font": {"size": 0, "color": "#ffffff"}, "title": "route", "community": 1, "community_name": "Database & Storage Layer", "source_file": "", "file_type": "code", "degree": 3}, {"id": "database_rationale_41", "label": "Guarda o actualiza un registro en la tabla base_rpmkt. Si el tel\u00e9fono ya\u2026", "color": {"background": "#F28E2B", "border": "#F28E2B", "highlight": {"background": "#ffffff", "border": "#F28E2B"}}, "size": 10.8, "font": {"size": 0, "color": "#ffffff"}, "title": "Guarda o actualiza un registro en la tabla base_rpmkt. Si el tel\u00e9fono ya\u2026", "community": 1, "community_name": "Database & Storage Layer", "source_file": "database.py", "file_type": "rationale", "degree": 1}, {"id": "database_rationale_9", "label": "Inicializa la base de datos y crea la tabla base_rpmkt.", "color": {"background": "#F28E2B", "border": "#F28E2B", "highlight": {"background": "#ffffff", "border": "#F28E2B"}}, "size": 10.8, "font": {"size": 0, "color": "#ffffff"}, "title": "Inicializa la base de datos y crea la tabla base_rpmkt.", "community": 1, "community_name": "Database & Storage Layer", "source_file": "database.py", "file_type": "rationale", "degree": 1}, {"id": "database_rationale_93", "label": "Retorna la lista de registros de la tabla base_rpmkt filtrada opcionalmente por\u2026", "color": {"background": "#F28E2B", "border": "#F28E2B", "highlight": {"background": "#ffffff", "border": "#F28E2B"}}, "size": 10.8, "font": {"size": 0, "color": "#ffffff"}, "title": "Retorna la lista de registros de la tabla base_rpmkt filtrada opcionalmente por\u2026", "community": 1, "community_name": "Database & Storage Layer", "source_file": "database.py", "file_type": "rationale", "degree": 1}, {"id": "main_rationale_28", "label": "Ruta ra\u00edz que sirve el frontend de la WebApp.", "color": {"background": "#F28E2B", "border": "#F28E2B", "highlight": {"background": "#ffffff", "border": "#F28E2B"}}, "size": 10.8, "font": {"size": 0, "color": "#ffffff"}, "title": "Ruta ra\u00edz que sirve el frontend de la WebApp.", "community": 1, "community_name": "Database & Storage Layer", "source_file": "main.py", "file_type": "rationale", "degree": 1}, {"id": "main_rationale_33", "label": "Endpoint para registrar o actualizar un cliente en base_rpmkt.", "color": {"background": "#F28E2B", "border": "#F28E2B", "highlight": {"background": "#ffffff", "border": "#F28E2B"}}, "size": 10.8, "font": {"size": 0, "color": "#ffffff"}, "title": "Endpoint para registrar o actualizar un cliente en base_rpmkt.", "community": 1, "community_name": "Database & Storage Layer", "source_file": "main.py", "file_type": "rationale", "degree": 1}, {"id": "main_rationale_82", "label": "Endpoint para retornar registros filtrados y paginados de base_rpmkt.", "color": {"background": "#F28E2B", "border": "#F28E2B", "highlight": {"background": "#ffffff", "border": "#F28E2B"}}, "size": 10.8, "font": {"size": 0, "color": "#ffffff"}, "title": "Endpoint para retornar registros filtrados y paginados de base_rpmkt.", "community": 1, "community_name": "Database & Storage Layer", "source_file": "main.py", "file_type": "rationale", "degree": 1}, {"id": "main", "label": "main.py", "color": {"background": "#E15759", "border": "#E15759", "highlight": {"background": "#ffffff", "border": "#E15759"}}, "size": 20.5, "font": {"size": 12, "color": "#ffffff"}, "title": "main.py", "community": 2, "community_name": "Flask & Telegram Backend", "source_file": "main.py", "file_type": "code", "degree": 13}, {"id": "message_handler", "label": "message_handler", "color": {"background": "#E15759", "border": "#E15759", "highlight": {"background": "#ffffff", "border": "#E15759"}}, "size": 10.8, "font": {"size": 0, "color": "#ffffff"}, "title": "message_handler", "community": 2, "community_name": "Flask & Telegram Backend", "source_file": "", "file_type": "code", "degree": 1}, {"id": "main_rationale_113", "label": "Ofrece el bot\u00f3n WebApp para arrancar el CRM.", "color": {"background": "#E15759", "border": "#E15759", "highlight": {"background": "#ffffff", "border": "#E15759"}}, "size": 10.8, "font": {"size": 0, "color": "#ffffff"}, "title": "Ofrece el bot\u00f3n WebApp para arrancar el CRM.", "community": 2, "community_name": "Flask & Telegram Backend", "source_file": "main.py", "file_type": "rationale", "degree": 1}, {"id": "main_rationale_130", "label": "Ejecuta el polling del bot en un hilo secundario.", "color": {"background": "#E15759", "border": "#E15759", "highlight": {"background": "#ffffff", "border": "#E15759"}}, "size": 10.8, "font": {"size": 0, "color": "#ffffff"}, "title": "Ejecuta el polling del bot en un hilo secundario.", "community": 2, "community_name": "Flask & Telegram Backend", "source_file": "main.py", "file_type": "rationale", "degree": 1}, {"id": "index_html_app", "label": "CRM Seguridad App (index.html)", "color": {"background": "#76B7B2", "border": "#76B7B2", "highlight": {"background": "#ffffff", "border": "#76B7B2"}}, "size": 14.9, "font": {"size": 12, "color": "#ffffff"}, "title": "CRM Seguridad App (index.html)", "community": 3, "community_name": "CRM UI & Project Docs", "source_file": "index.html", "file_type": "code", "degree": 6}, {"id": "index_html_client_list", "label": "Client List Tab (Ver Listas)", "color": {"background": "#76B7B2", "border": "#76B7B2", "highlight": {"background": "#ffffff", "border": "#76B7B2"}}, "size": 10.8, "font": {"size": 0, "color": "#ffffff"}, "title": "Client List Tab (Ver Listas)", "community": 3, "community_name": "CRM UI & Project Docs", "source_file": "index.html", "file_type": "code", "degree": 1}, {"id": "index_html_form", "label": "Client Registration Form (CRM Seguridad)", "color": {"background": "#76B7B2", "border": "#76B7B2", "highlight": {"background": "#ffffff", "border": "#76B7B2"}}, "size": 10.8, "font": {"size": 0, "color": "#ffffff"}, "title": "Client Registration Form (CRM Seguridad)", "community": 3, "community_name": "CRM UI & Project Docs", "source_file": "index.html", "file_type": "code", "degree": 1}, {"id": "index_html_html_app", "label": "Architectural Ledger CRM App", "color": {"background": "#76B7B2", "border": "#76B7B2", "highlight": {"background": "#ffffff", "border": "#76B7B2"}}, "size": 12.4, "font": {"size": 0, "color": "#ffffff"}, "title": "Architectural Ledger CRM App", "community": 3, "community_name": "CRM UI & Project Docs", "source_file": "index.html.html", "file_type": "code", "degree": 3}, {"id": "index_html_base_rpmkt", "label": "base_rpmkt Data Table", "color": {"background": "#76B7B2", "border": "#76B7B2", "highlight": {"background": "#ffffff", "border": "#76B7B2"}}, "size": 10.8, "font": {"size": 0, "color": "#ffffff"}, "title": "base_rpmkt Data Table", "community": 3, "community_name": "CRM UI & Project Docs", "source_file": "index.html", "file_type": "concept", "degree": 1}, {"id": "index_html_telegram", "label": "Telegram WebApp SDK Integration", "color": {"background": "#76B7B2", "border": "#76B7B2", "highlight": {"background": "#ffffff", "border": "#76B7B2"}}, "size": 10.8, "font": {"size": 0, "color": "#ffffff"}, "title": "Telegram WebApp SDK Integration", "community": 3, "community_name": "CRM UI & Project Docs", "source_file": "index.html", "file_type": "concept", "degree": 1}, {"id": "readme_project", "label": "CRM Seguridad Project (crm_proyecto1)", "color": {"background": "#76B7B2", "border": "#76B7B2", "highlight": {"background": "#ffffff", "border": "#76B7B2"}}, "size": 11.6, "font": {"size": 0, "color": "#ffffff"}, "title": "CRM Seguridad Project (crm_proyecto1)", "community": 3, "community_name": "CRM UI & Project Docs", "source_file": "README.md", "file_type": "document", "degree": 2}, {"id": "index_html_html_activity_feed", "label": "Activity Feed Component (Correos, Llamadas, Tareas, Notas, Reuniones)", "color": {"background": "#59A14F", "border": "#59A14F", "highlight": {"background": "#ffffff", "border": "#59A14F"}}, "size": 10.8, "font": {"size": 0, "color": "#ffffff"}, "title": "Activity Feed Component (Correos, Llamadas, Tareas, Notas, Reuniones)", "community": 4, "community_name": "Contact Detail & Deals", "source_file": "index.html.html", "file_type": "code", "degree": 1}, {"id": "index_html_html_contact_view", "label": "Contact Detail View (Sarah Johnson / Architectural Ledger)", "color": {"background": "#59A14F", "border": "#59A14F", "highlight": {"background": "#ffffff", "border": "#59A14F"}}, "size": 14.1, "font": {"size": 0, "color": "#ffffff"}, "title": "Contact Detail View (Sarah Johnson / Architectural Ledger)", "community": 4, "community_name": "Contact Detail & Deals", "source_file": "index.html.html", "file_type": "code", "degree": 5}, {"id": "index_html_html_deal_t3", "label": "Expansi\u00f3n T3 Deal ($15,000 \u2013 Discovery stage)", "color": {"background": "#59A14F", "border": "#59A14F", "highlight": {"background": "#ffffff", "border": "#59A14F"}}, "size": 11.6, "font": {"size": 0, "color": "#ffffff"}, "title": "Expansi\u00f3n T3 Deal ($15,000 \u2013 Discovery stage)", "community": 4, "community_name": "Contact Detail & Deals", "source_file": "index.html.html", "file_type": "concept", "degree": 2}, {"id": "index_html_html_sarah_johnson", "label": "Sarah Johnson (Contact \u2013 Senior Marketing Manager)", "color": {"background": "#59A14F", "border": "#59A14F", "highlight": {"background": "#ffffff", "border": "#59A14F"}}, "size": 12.4, "font": {"size": 0, "color": "#ffffff"}, "title": "Sarah Johnson (Contact \u2013 Senior Marketing Manager)", "community": 4, "community_name": "Contact Detail & Deals", "source_file": "index.html.html", "file_type": "concept", "degree": 3}, {"id": "index_html_html_techcorp", "label": "TechCorp (Associated Company)", "color": {"background": "#59A14F", "border": "#59A14F", "highlight": {"background": "#ffffff", "border": "#59A14F"}}, "size": 11.6, "font": {"size": 0, "color": "#ffffff"}, "title": "TechCorp (Associated Company)", "community": 4, "community_name": "Contact Detail & Deals", "source_file": "index.html.html", "file_type": "concept", "degree": 2}, {"id": "os", "label": "os", "color": {"background": "#F28E2B", "border": "#F28E2B", "highlight": {"background": "#ffffff", "border": "#F28E2B"}}, "size": 11.6, "font": {"size": 0, "color": "#ffffff"}, "title": "os", "community": 1, "community_name": "Database & Storage Layer", "source_file": "", "file_type": "concept", "degree": 2}, {"id": "sqlite3", "label": "sqlite3", "color": {"background": "#F28E2B", "border": "#F28E2B", "highlight": {"background": "#ffffff", "border": "#F28E2B"}}, "size": 10.8, "font": {"size": 0, "color": "#ffffff"}, "title": "sqlite3", "community": 1, "community_name": "Database & Storage Layer", "source_file": "", "file_type": "concept", "degree": 1}, {"id": "flask", "label": "flask", "color": {"background": "#E15759", "border": "#E15759", "highlight": {"background": "#ffffff", "border": "#E15759"}}, "size": 10.8, "font": {"size": 0, "color": "#ffffff"}, "title": "flask", "community": 2, "community_name": "Flask & Telegram Backend", "source_file": "", "file_type": "concept", "degree": 1}, {"id": "math", "label": "math", "color": {"background": "#E15759", "border": "#E15759", "highlight": {"background": "#ffffff", "border": "#E15759"}}, "size": 10.8, "font": {"size": 0, "color": "#ffffff"}, "title": "math", "community": 2, "community_name": "Flask & Telegram Backend", "source_file": "", "file_type": "concept", "degree": 1}, {"id": "telebot", "label": "telebot", "color": {"background": "#E15759", "border": "#E15759", "highlight": {"background": "#ffffff", "border": "#E15759"}}, "size": 10.8, "font": {"size": 0, "color": "#ffffff"}, "title": "telebot", "community": 2, "community_name": "Flask & Telegram Backend", "source_file": "", "file_type": "concept", "degree": 1}, {"id": "telebot_types", "label": "telebot_types", "color": {"background": "#E15759", "border": "#E15759", "highlight": {"background": "#ffffff", "border": "#E15759"}}, "size": 10.8, "font": {"size": 0, "color": "#ffffff"}, "title": "telebot_types", "community": 2, "community_name": "Flask & Telegram Backend", "source_file": "", "file_type": "concept", "degree": 1}, {"id": "threading", "label": "threading", "color": {"background": "#E15759", "border": "#E15759", "highlight": {"background": "#ffffff", "border": "#E15759"}}, "size": 10.8, "font": {"size": 0, "color": "#ffffff"}, "title": "threading", "community": 2, "community_name": "Flask & Telegram Backend", "source_file": "", "file_type": "concept", "degree": 1}];
+const RAW_EDGES = [{"from": "app_playhaptic", "to": "app", "label": "contains", "title": "contains [EXTRACTED]", "dashes": false, "width": 2, "color": {"opacity": 0.7}, "confidence": "EXTRACTED"}, {"from": "app_showtoast", "to": "app", "label": "contains", "title": "contains [EXTRACTED]", "dashes": false, "width": 2, "color": {"opacity": 0.7}, "confidence": "EXTRACTED"}, {"from": "app_switchtab", "to": "app", "label": "contains", "title": "contains [EXTRACTED]", "dashes": false, "width": 2, "color": {"opacity": 0.7}, "confidence": "EXTRACTED"}, {"from": "app_triggerconfetti", "to": "app", "label": "contains", "title": "contains [EXTRACTED]", "dashes": false, "width": 2, "color": {"opacity": 0.7}, "confidence": "EXTRACTED"}, {"from": "app_validatefield", "to": "app", "label": "contains", "title": "contains [EXTRACTED]", "dashes": false, "width": 2, "color": {"opacity": 0.7}, "confidence": "EXTRACTED"}, {"from": "app_valnombre", "to": "app", "label": "indirect_call", "title": "indirect_call [INFERRED]", "dashes": true, "width": 1, "color": {"opacity": 0.35}, "confidence": "INFERRED"}, {"from": "app_valtelefono", "to": "app", "label": "indirect_call", "title": "indirect_call [INFERRED]", "dashes": true, "width": 1, "color": {"opacity": 0.35}, "confidence": "INFERRED"}, {"from": "database_get_clientes", "to": "main_listar_clientes", "label": "calls", "title": "calls [EXTRACTED]", "dashes": false, "width": 2, "color": {"opacity": 0.7}, "confidence": "EXTRACTED"}, {"from": "database_get_clientes", "to": "database", "label": "contains", "title": "contains [EXTRACTED]", "dashes": false, "width": 2, "color": {"opacity": 0.7}, "confidence": "EXTRACTED"}, {"from": "database_get_clientes", "to": "database_rationale_93", "label": "rationale_for", "title": "rationale_for [EXTRACTED]", "dashes": false, "width": 2, "color": {"opacity": 0.7}, "confidence": "EXTRACTED"}, {"from": "database_init_db", "to": "database", "label": "contains", "title": "contains [EXTRACTED]", "dashes": false, "width": 2, "color": {"opacity": 0.7}, "confidence": "EXTRACTED"}, {"from": "database_init_db", "to": "database_rationale_9", "label": "rationale_for", "title": "rationale_for [EXTRACTED]", "dashes": false, "width": 2, "color": {"opacity": 0.7}, "confidence": "EXTRACTED"}, {"from": "database_save_cliente", "to": "main_registrar_cliente", "label": "calls", "title": "calls [EXTRACTED]", "dashes": false, "width": 2, "color": {"opacity": 0.7}, "confidence": "EXTRACTED"}, {"from": "database_save_cliente", "to": "database", "label": "contains", "title": "contains [EXTRACTED]", "dashes": false, "width": 2, "color": {"opacity": 0.7}, "confidence": "EXTRACTED"}, {"from": "database_save_cliente", "to": "database_rationale_41", "label": "rationale_for", "title": "rationale_for [EXTRACTED]", "dashes": false, "width": 2, "color": {"opacity": 0.7}, "confidence": "EXTRACTED"}, {"from": "main_index", "to": "route", "label": "references", "title": "references [EXTRACTED]", "dashes": false, "width": 2, "color": {"opacity": 0.7}, "confidence": "EXTRACTED"}, {"from": "main_index", "to": "main", "label": "contains", "title": "contains [EXTRACTED]", "dashes": false, "width": 2, "color": {"opacity": 0.7}, "confidence": "EXTRACTED"}, {"from": "main_index", "to": "main_rationale_28", "label": "rationale_for", "title": "rationale_for [EXTRACTED]", "dashes": false, "width": 2, "color": {"opacity": 0.7}, "confidence": "EXTRACTED"}, {"from": "main_listar_clientes", "to": "route", "label": "references", "title": "references [EXTRACTED]", "dashes": false, "width": 2, "color": {"opacity": 0.7}, "confidence": "EXTRACTED"}, {"from": "main_listar_clientes", "to": "main", "label": "contains", "title": "contains [EXTRACTED]", "dashes": false, "width": 2, "color": {"opacity": 0.7}, "confidence": "EXTRACTED"}, {"from": "main_listar_clientes", "to": "main_rationale_82", "label": "rationale_for", "title": "rationale_for [EXTRACTED]", "dashes": false, "width": 2, "color": {"opacity": 0.7}, "confidence": "EXTRACTED"}, {"from": "main_registrar_cliente", "to": "route", "label": "references", "title": "references [EXTRACTED]", "dashes": false, "width": 2, "color": {"opacity": 0.7}, "confidence": "EXTRACTED"}, {"from": "main_registrar_cliente", "to": "main", "label": "contains", "title": "contains [EXTRACTED]", "dashes": false, "width": 2, "color": {"opacity": 0.7}, "confidence": "EXTRACTED"}, {"from": "main_registrar_cliente", "to": "main_rationale_33", "label": "rationale_for", "title": "rationale_for [EXTRACTED]", "dashes": false, "width": 2, "color": {"opacity": 0.7}, "confidence": "EXTRACTED"}, {"from": "main_after_request", "to": "main_after_request", "label": "references", "title": "references [EXTRACTED]", "dashes": false, "width": 2, "color": {"opacity": 0.7}, "confidence": "EXTRACTED"}, {"from": "main_after_request", "to": "main", "label": "contains", "title": "contains [EXTRACTED]", "dashes": false, "width": 2, "color": {"opacity": 0.7}, "confidence": "EXTRACTED"}, {"from": "main_run_telegram_bot", "to": "main", "label": "contains", "title": "contains [EXTRACTED]", "dashes": false, "width": 2, "color": {"opacity": 0.7}, "confidence": "EXTRACTED"}, {"from": "main_run_telegram_bot", "to": "main_rationale_130", "label": "rationale_for", "title": "rationale_for [EXTRACTED]", "dashes": false, "width": 2, "color": {"opacity": 0.7}, "confidence": "EXTRACTED"}, {"from": "main_send_welcome", "to": "message_handler", "label": "references", "title": "references [EXTRACTED]", "dashes": false, "width": 2, "color": {"opacity": 0.7}, "confidence": "EXTRACTED"}, {"from": "main_send_welcome", "to": "main", "label": "contains", "title": "contains [EXTRACTED]", "dashes": false, "width": 2, "color": {"opacity": 0.7}, "confidence": "EXTRACTED"}, {"from": "main_send_welcome", "to": "main_rationale_113", "label": "rationale_for", "title": "rationale_for [EXTRACTED]", "dashes": false, "width": 2, "color": {"opacity": 0.7}, "confidence": "EXTRACTED"}, {"from": "app_escapehtml", "to": "app_renderclients", "label": "calls", "title": "calls [EXTRACTED]", "dashes": false, "width": 2, "color": {"opacity": 0.7}, "confidence": "EXTRACTED"}, {"from": "app_escapehtml", "to": "app", "label": "contains", "title": "contains [EXTRACTED]", "dashes": false, "width": 2, "color": {"opacity": 0.7}, "confidence": "EXTRACTED"}, {"from": "app_fetchclients", "to": "app_renderclients", "label": "calls", "title": "calls [EXTRACTED]", "dashes": false, "width": 2, "color": {"opacity": 0.7}, "confidence": "EXTRACTED"}, {"from": "app_fetchclients", "to": "app_updatepaginationcontrols", "label": "calls", "title": "calls [EXTRACTED]", "dashes": false, "width": 2, "color": {"opacity": 0.7}, "confidence": "EXTRACTED"}, {"from": "app_fetchclients", "to": "app", "label": "contains", "title": "contains [EXTRACTED]", "dashes": false, "width": 2, "color": {"opacity": 0.7}, "confidence": "EXTRACTED"}, {"from": "app_renderclients", "to": "app", "label": "contains", "title": "contains [EXTRACTED]", "dashes": false, "width": 2, "color": {"opacity": 0.7}, "confidence": "EXTRACTED"}, {"from": "app_updatepaginationcontrols", "to": "app", "label": "contains", "title": "contains [EXTRACTED]", "dashes": false, "width": 2, "color": {"opacity": 0.7}, "confidence": "EXTRACTED"}, {"from": "app", "to": "app_tabregistrar", "label": "contains", "title": "contains [EXTRACTED]", "dashes": false, "width": 2, "color": {"opacity": 0.7}, "confidence": "EXTRACTED"}, {"from": "app", "to": "app_tabverlistas", "label": "contains", "title": "contains [EXTRACTED]", "dashes": false, "width": 2, "color": {"opacity": 0.7}, "confidence": "EXTRACTED"}, {"from": "app", "to": "app_contentregistrar", "label": "contains", "title": "contains [EXTRACTED]", "dashes": false, "width": 2, "color": {"opacity": 0.7}, "confidence": "EXTRACTED"}, {"from": "app", "to": "app_contentverlistas", "label": "contains", "title": "contains [EXTRACTED]", "dashes": false, "width": 2, "color": {"opacity": 0.7}, "confidence": "EXTRACTED"}, {"from": "app", "to": "app_crmform", "label": "contains", "title": "contains [EXTRACTED]", "dashes": false, "width": 2, "color": {"opacity": 0.7}, "confidence": "EXTRACTED"}, {"from": "app", "to": "app_clienteinput", "label": "contains", "title": "contains [EXTRACTED]", "dashes": false, "width": 2, "color": {"opacity": 0.7}, "confidence": "EXTRACTED"}, {"from": "app", "to": "app_telefonoinput", "label": "contains", "title": "contains [EXTRACTED]", "dashes": false, "width": 2, "color": {"opacity": 0.7}, "confidence": "EXTRACTED"}, {"from": "app", "to": "app_distritoinput", "label": "contains", "title": "contains [EXTRACTED]", "dashes": false, "width": 2, "color": {"opacity": 0.7}, "confidence": "EXTRACTED"}, {"from": "app", "to": "app_direccioninput", "label": "contains", "title": "contains [EXTRACTED]", "dashes": false, "width": 2, "color": {"opacity": 0.7}, "confidence": "EXTRACTED"}, {"from": "app", "to": "app_estadoselect", "label": "contains", "title": "contains [EXTRACTED]", "dashes": false, "width": 2, "color": {"opacity": 0.7}, "confidence": "EXTRACTED"}, {"from": "app", "to": "app_estadoseguimientoselect", "label": "contains", "title": "contains [EXTRACTED]", "dashes": false, "width": 2, "color": {"opacity": 0.7}, "confidence": "EXTRACTED"}, {"from": "app", "to": "app_accioncontactoselect", "label": "contains", "title": "contains [EXTRACTED]", "dashes": false, "width": 2, "color": {"opacity": 0.7}, "confidence": "EXTRACTED"}, {"from": "app", "to": "app_procedenciainput", "label": "contains", "title": "contains [EXTRACTED]", "dashes": false, "width": 2, "color": {"opacity": 0.7}, "confidence": "EXTRACTED"}, {"from": "app", "to": "app_archivoorigeninput", "label": "contains", "title": "contains [EXTRACTED]", "dashes": false, "width": 2, "color": {"opacity": 0.7}, "confidence": "EXTRACTED"}, {"from": "app", "to": "app_fechainput", "label": "contains", "title": "contains [EXTRACTED]", "dashes": false, "width": 2, "color": {"opacity": 0.7}, "confidence": "EXTRACTED"}, {"from": "app", "to": "app_horainput", "label": "contains", "title": "contains [EXTRACTED]", "dashes": false, "width": 2, "color": {"opacity": 0.7}, "confidence": "EXTRACTED"}, {"from": "app", "to": "app_contactoobservacioninput", "label": "contains", "title": "contains [EXTRACTED]", "dashes": false, "width": 2, "color": {"opacity": 0.7}, "confidence": "EXTRACTED"}, {"from": "app", "to": "app_observacioninput", "label": "contains", "title": "contains [EXTRACTED]", "dashes": false, "width": 2, "color": {"opacity": 0.7}, "confidence": "EXTRACTED"}, {"from": "app", "to": "app_historialcontactosinput", "label": "contains", "title": "contains [EXTRACTED]", "dashes": false, "width": 2, "color": {"opacity": 0.7}, "confidence": "EXTRACTED"}, {"from": "app", "to": "app_confetticontainer", "label": "contains", "title": "contains [EXTRACTED]", "dashes": false, "width": 2, "color": {"opacity": 0.7}, "confidence": "EXTRACTED"}, {"from": "app", "to": "app_clientslist", "label": "contains", "title": "contains [EXTRACTED]", "dashes": false, "width": 2, "color": {"opacity": 0.7}, "confidence": "EXTRACTED"}, {"from": "app", "to": "app_filterscontainer", "label": "contains", "title": "contains [EXTRACTED]", "dashes": false, "width": 2, "color": {"opacity": 0.7}, "confidence": "EXTRACTED"}, {"from": "app", "to": "app_btnprev", "label": "contains", "title": "contains [EXTRACTED]", "dashes": false, "width": 2, "color": {"opacity": 0.7}, "confidence": "EXTRACTED"}, {"from": "app", "to": "app_btnnext", "label": "contains", "title": "contains [EXTRACTED]", "dashes": false, "width": 2, "color": {"opacity": 0.7}, "confidence": "EXTRACTED"}, {"from": "app", "to": "app_pageinfo", "label": "contains", "title": "contains [EXTRACTED]", "dashes": false, "width": 2, "color": {"opacity": 0.7}, "confidence": "EXTRACTED"}, {"from": "app", "to": "app_toastcontainer", "label": "contains", "title": "contains [EXTRACTED]", "dashes": false, "width": 2, "color": {"opacity": 0.7}, "confidence": "EXTRACTED"}, {"from": "database", "to": "sqlite3", "label": "imports", "title": "imports [EXTRACTED]", "dashes": false, "width": 2, "color": {"opacity": 0.7}, "confidence": "EXTRACTED"}, {"from": "database", "to": "os", "label": "imports", "title": "imports [EXTRACTED]", "dashes": false, "width": 2, "color": {"opacity": 0.7}, "confidence": "EXTRACTED"}, {"from": "database", "to": "main", "label": "imports", "title": "imports [EXTRACTED]", "dashes": false, "width": 2, "color": {"opacity": 0.7}, "confidence": "EXTRACTED"}, {"from": "main", "to": "os", "label": "imports", "title": "imports [EXTRACTED]", "dashes": false, "width": 2, "color": {"opacity": 0.7}, "confidence": "EXTRACTED"}, {"from": "main", "to": "math", "label": "imports", "title": "imports [EXTRACTED]", "dashes": false, "width": 2, "color": {"opacity": 0.7}, "confidence": "EXTRACTED"}, {"from": "main", "to": "threading", "label": "imports", "title": "imports [EXTRACTED]", "dashes": false, "width": 2, "color": {"opacity": 0.7}, "confidence": "EXTRACTED"}, {"from": "main", "to": "telebot", "label": "imports", "title": "imports [EXTRACTED]", "dashes": false, "width": 2, "color": {"opacity": 0.7}, "confidence": "EXTRACTED"}, {"from": "main", "to": "flask", "label": "imports_from", "title": "imports_from [EXTRACTED]", "dashes": false, "width": 2, "color": {"opacity": 0.7}, "confidence": "EXTRACTED"}, {"from": "main", "to": "telebot_types", "label": "imports_from", "title": "imports_from [EXTRACTED]", "dashes": false, "width": 2, "color": {"opacity": 0.7}, "confidence": "EXTRACTED"}, {"from": "index_html_app", "to": "index_html_client_list", "label": "references", "title": "references [EXTRACTED]", "dashes": false, "width": 2, "color": {"opacity": 0.7}, "confidence": "EXTRACTED"}, {"from": "index_html_app", "to": "index_html_form", "label": "references", "title": "references [EXTRACTED]", "dashes": false, "width": 2, "color": {"opacity": 0.7}, "confidence": "EXTRACTED"}, {"from": "index_html_app", "to": "index_html_base_rpmkt", "label": "references", "title": "references [EXTRACTED]", "dashes": false, "width": 2, "color": {"opacity": 0.7}, "confidence": "EXTRACTED"}, {"from": "index_html_app", "to": "index_html_telegram", "label": "references", "title": "references [EXTRACTED]", "dashes": false, "width": 2, "color": {"opacity": 0.7}, "confidence": "EXTRACTED"}, {"from": "index_html_app", "to": "index_html_html_app", "label": "conceptually_related_to", "title": "conceptually_related_to [INFERRED]", "dashes": true, "width": 1, "color": {"opacity": 0.35}, "confidence": "INFERRED"}, {"from": "index_html_app", "to": "readme_project", "label": "references", "title": "references [INFERRED]", "dashes": true, "width": 1, "color": {"opacity": 0.35}, "confidence": "INFERRED"}, {"from": "index_html_html_app", "to": "index_html_html_contact_view", "label": "references", "title": "references [EXTRACTED]", "dashes": false, "width": 2, "color": {"opacity": 0.7}, "confidence": "EXTRACTED"}, {"from": "index_html_html_app", "to": "readme_project", "label": "conceptually_related_to", "title": "conceptually_related_to [INFERRED]", "dashes": true, "width": 1, "color": {"opacity": 0.35}, "confidence": "INFERRED"}, {"from": "index_html_html_activity_feed", "to": "index_html_html_contact_view", "label": "references", "title": "references [EXTRACTED]", "dashes": false, "width": 2, "color": {"opacity": 0.7}, "confidence": "EXTRACTED"}, {"from": "index_html_html_contact_view", "to": "index_html_html_techcorp", "label": "references", "title": "references [EXTRACTED]", "dashes": false, "width": 2, "color": {"opacity": 0.7}, "confidence": "EXTRACTED"}, {"from": "index_html_html_contact_view", "to": "index_html_html_deal_t3", "label": "references", "title": "references [EXTRACTED]", "dashes": false, "width": 2, "color": {"opacity": 0.7}, "confidence": "EXTRACTED"}, {"from": "index_html_html_contact_view", "to": "index_html_html_sarah_johnson", "label": "shares_data_with", "title": "shares_data_with [EXTRACTED]", "dashes": false, "width": 2, "color": {"opacity": 0.7}, "confidence": "EXTRACTED"}, {"from": "index_html_html_deal_t3", "to": "index_html_html_sarah_johnson", "label": "conceptually_related_to", "title": "conceptually_related_to [EXTRACTED]", "dashes": false, "width": 2, "color": {"opacity": 0.7}, "confidence": "EXTRACTED"}, {"from": "index_html_html_sarah_johnson", "to": "index_html_html_techcorp", "label": "conceptually_related_to", "title": "conceptually_related_to [EXTRACTED]", "dashes": false, "width": 2, "color": {"opacity": 0.7}, "confidence": "EXTRACTED"}];
+const LEGEND = [{"cid": 0, "color": "#4E79A7", "label": "Frontend CRM App", "count": 34}, {"cid": 1, "color": "#F28E2B", "label": "Database &amp; Storage Layer", "count": 16}, {"cid": 2, "color": "#E15759", "label": "Flask &amp; Telegram Backend", "count": 12}, {"cid": 3, "color": "#76B7B2", "label": "CRM UI &amp; Project Docs", "count": 7}, {"cid": 4, "color": "#59A14F", "label": "Contact Detail &amp; Deals", "count": 5}, {"cid": 5, "color": "#EDC948", "label": "Client Rendering &amp; Pagination", "count": 4}];
+
+// HTML-escape helper — prevents XSS when injecting graph data into innerHTML
+function esc(s) {
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+}
+
+// Build vis datasets
+const nodesDS = new vis.DataSet(RAW_NODES.map((n, i) => ({
+  id: n.id, label: n.label, color: n.color, size: n.size,
+  font: n.font, title: n.title,
+  // Fermat/golden-angle spiral seed positions (#3699): spreading nodes out
+  // before physics runs keeps avoidOverlap from computing near-zero-distance
+  // repulsion that blows the BarnesHut recursion into a stack overflow on large
+  // graphs. `i` is the map index — physics still settles small graphs identically.
+  x: 30 * Math.sqrt(i) * Math.cos(i * 2.4),
+  y: 30 * Math.sqrt(i) * Math.sin(i * 2.4),
+  community: n.community, community_name: n.community_name,
+  source_file: n.source_file, file_type: n.file_type, degree: n.degree,
+  member_count: n.member_count,
+})));
+
+const edgesDS = new vis.DataSet(RAW_EDGES.map((e, i) => ({
+  id: i, from: e.from, to: e.to,
+  label: '',
+  title: e.title,
+  dashes: e.dashes,
+  width: e.width,
+  color: e.color,
+  arrows: { to: { enabled: true, scaleFactor: 0.5 } },
+})));
+
+const container = document.getElementById('graph');
+const network = new vis.Network(container, { nodes: nodesDS, edges: edgesDS }, {
+  physics: {
+    enabled: true,
+    solver: 'forceAtlas2Based',
+    forceAtlas2Based: {
+      gravitationalConstant: -60,
+      centralGravity: 0.005,
+      springLength: 120,
+      springConstant: 0.08,
+      damping: 0.4,
+      avoidOverlap: 0.8,
+    },
+    stabilization: { iterations: 200, fit: true },
+  },
+  interaction: {
+    hover: true,
+    tooltipDelay: 100,
+    hideEdgesOnDrag: true,
+    navigationButtons: false,
+    keyboard: false,
+  },
+  nodes: { shape: 'dot', borderWidth: 1.5 },
+  edges: { smooth: { type: 'continuous', roundness: 0.2 }, selectionWidth: 3 },
+});
+
+network.once('stabilizationIterationsDone', () => {
+  network.setOptions({ physics: { enabled: false } });
+});
+
+function showInfo(nodeId) {
+  const n = nodesDS.get(nodeId);
+  if (!n) return;
+  const neighborIds = network.getConnectedNodes(nodeId);
+  const neighborItems = neighborIds.map(nid => {
+    const nb = nodesDS.get(nid);
+    const color = nb ? nb.color.background : '#555';
+    return `<span class="neighbor-link" style="border-left-color:${esc(color)}" data-nid="${esc(nid)}">${esc(nb ? nb.label : nid)}</span>`;
+  }).join('');
+  const isMetaNode = !n.file_type && !n.source_file;
+  let html = `<div class="field"><b>${esc(n.label)}</b></div>`;
+  if (!isMetaNode) {
+    html += `<div class="field">Type: ${esc(n.file_type || 'unknown')}</div>`;
+  }
+  html += `<div class="field">Community: ${esc(n.community_name || '')}</div>`;
+  if (!isMetaNode) {
+    html += `<div class="field">Source: ${esc(n.source_file || '-')}</div>`;
+  } else if (n.member_count !== undefined && n.member_count !== null) {
+    html += `<div class="field">Members: ${esc(n.member_count)}</div>`;
+  }
+  html += `<div class="field">Degree: ${n.degree}</div>`;
+  if (neighborIds.length) {
+    html += `<div class="field" style="margin-top:8px;color:#aaa;font-size:11px">Neighbors (${neighborIds.length})</div><div id="neighbors-list">${neighborItems}</div>`;
+  }
+  document.getElementById('info-content').innerHTML = html;
+}
+
+function focusNode(nodeId) {
+  network.focus(nodeId, { scale: 1.4, animation: true });
+  network.selectNodes([nodeId]);
+  showInfo(nodeId);
+}
+
+// Neighbor links use a data attribute + one delegated listener rather than an
+// inline onclick. A node id/label sourced from a document or a scraped URL
+// (graphify add) can contain a double-quote; dropping the stringified id
+// unescaped into a quoted onclick both broke every link and allowed a hostile
+// source to inject an event handler into the local report (stored XSS, #1838).
+// esc() on data-nid keeps the value inside the attribute; the listener reads it
+// back verbatim. Bound to document so it survives the innerHTML rebuild that
+// recreates #neighbors-list on each showInfo().
+document.addEventListener('click', e => {
+  const el = e.target.closest('.neighbor-link');
+  if (el && el.dataset.nid !== undefined) focusNode(el.dataset.nid);
+});
+
+// Track hovered node — hover detection is more reliable than click params
+let hoveredNodeId = null;
+network.on('hoverNode', params => {
+  hoveredNodeId = params.node;
+  container.style.cursor = 'pointer';
+});
+network.on('blurNode', () => {
+  hoveredNodeId = null;
+  container.style.cursor = 'default';
+});
+container.addEventListener('click', () => {
+  if (hoveredNodeId !== null) {
+    showInfo(hoveredNodeId);
+    network.selectNodes([hoveredNodeId]);
+  }
+});
+network.on('click', params => {
+  if (params.nodes.length > 0) {
+    showInfo(params.nodes[0]);
+  } else if (hoveredNodeId === null) {
+    document.getElementById('info-content').innerHTML = '<span class="empty">Click a node to inspect it</span>';
+  }
+});
+
+const searchInput = document.getElementById('search');
+const searchResults = document.getElementById('search-results');
+searchInput.addEventListener('input', () => {
+  const q = searchInput.value.toLowerCase().trim();
+  searchResults.innerHTML = '';
+  if (!q) { searchResults.style.display = 'none'; return; }
+  const matches = RAW_NODES.filter(n => n.label.toLowerCase().includes(q)).slice(0, 20);
+  if (!matches.length) { searchResults.style.display = 'none'; return; }
+  searchResults.style.display = 'block';
+  matches.forEach(n => {
+    const el = document.createElement('div');
+    el.className = 'search-item';
+    el.textContent = n.label;
+    el.style.borderLeft = `3px solid ${n.color.background}`;
+    el.style.paddingLeft = '8px';
+    el.onclick = () => {
+      network.focus(n.id, { scale: 1.5, animation: true });
+      network.selectNodes([n.id]);
+      showInfo(n.id);
+      searchResults.style.display = 'none';
+      searchInput.value = '';
+    };
+    searchResults.appendChild(el);
+  });
+});
+document.addEventListener('click', e => {
+  if (!searchResults.contains(e.target) && e.target !== searchInput)
+    searchResults.style.display = 'none';
+});
+
+const hiddenCommunities = new Set();
+
+const selectAllCb = document.getElementById('select-all-cb');
+
+function updateSelectAllState() {
+  const total = LEGEND.length;
+  const hidden = hiddenCommunities.size;
+  selectAllCb.checked = hidden === 0;
+  selectAllCb.indeterminate = hidden > 0 && hidden < total;
+}
+
+function toggleAllCommunities(hide) {
+  document.querySelectorAll('.legend-item').forEach(item => {
+    hide ? item.classList.add('dimmed') : item.classList.remove('dimmed');
+  });
+  document.querySelectorAll('.legend-cb').forEach(cb => {
+    cb.checked = !hide;
+  });
+  LEGEND.forEach(c => {
+    if (hide) hiddenCommunities.add(c.cid); else hiddenCommunities.delete(c.cid);
+  });
+  const updates = RAW_NODES.map(n => ({ id: n.id, hidden: hide }));
+  nodesDS.update(updates);
+  updateSelectAllState();
+}
+
+const legendEl = document.getElementById('legend');
+LEGEND.forEach(c => {
+  const item = document.createElement('div');
+  item.className = 'legend-item';
+  const cb = document.createElement('input');
+  cb.type = 'checkbox';
+  cb.className = 'legend-cb';
+  cb.checked = true;
+  cb.addEventListener('change', (e) => {
+    e.stopPropagation();
+    if (cb.checked) {
+      hiddenCommunities.delete(c.cid);
+      item.classList.remove('dimmed');
+    } else {
+      hiddenCommunities.add(c.cid);
+      item.classList.add('dimmed');
+    }
+    const updates = RAW_NODES
+      .filter(n => n.community === c.cid)
+      .map(n => ({ id: n.id, hidden: !cb.checked }));
+    nodesDS.update(updates);
+    updateSelectAllState();
+  });
+  item.innerHTML = `<div class="legend-dot" style="background:${c.color}"></div>
+    <span class="legend-label">${c.label}</span>
+    <span class="legend-count">${c.count}</span>`;
+  item.prepend(cb);
+  item.onclick = (e) => {
+    if (e.target === cb) return;
+    cb.checked = !cb.checked;
+    cb.dispatchEvent(new Event('change'));
+  };
+  legendEl.appendChild(item);
+});
+</script>
+<script>
+// Render hyperedges as shaded regions
+const hyperedges = [];
+// afterDrawing passes ctx already transformed to network coordinate space.
+// Draw node positions raw — no manual pan/zoom/DPR math needed.
+
+// Andrew's monotone chain. Returns the hull in counter-clockwise order, which
+// is what the perimeter must be traced in. Collinear and duplicate points
+// collapse to the extremes, so degenerate member sets render as a segment
+// rather than a zero-area crossed path.
+function convexHull(pts) {
+    const p = pts.slice().sort((a, b) => (a.x - b.x) || (a.y - b.y));
+    if (p.length < 3) return p;
+    const cross = (o, a, b) => (a.x - o.x) * (b.y - o.y) - (a.y - o.y) * (b.x - o.x);
+    const build = seq => {
+        const out = [];
+        for (const q of seq) {
+            while (out.length >= 2 && cross(out[out.length - 2], out[out.length - 1], q) <= 0) out.pop();
+            out.push(q);
+        }
+        out.pop();
+        return out;
+    };
+    const hull = build(p).concat(build(p.slice().reverse()));
+    return hull.length >= 3 ? hull : p;
+}
+network.on('afterDrawing', function(ctx) {
+    hyperedges.forEach(h => {
+        const positions = h.nodes
+            .map(nid => network.getPositions([nid])[nid])
+            .filter(p => p !== undefined);
+        if (positions.length < 2) return;
+        ctx.save();
+        ctx.globalAlpha = 0.12;
+        ctx.fillStyle = '#6366f1';
+        ctx.strokeStyle = '#6366f1';
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        // Centroid and expanded hull in network coordinates.
+        // The perimeter must follow hull order, not h.nodes order: tracing the
+        // raw member order self-intersects whenever the layout does not happen
+        // to place members in angular order, filling as crossed wedges.
+        const cx = positions.reduce((s, p) => s + p.x, 0) / positions.length;
+        const cy = positions.reduce((s, p) => s + p.y, 0) / positions.length;
+        const hull = convexHull(positions);
+        const expanded = hull.map(p => ({
+            x: cx + (p.x - cx) * 1.15,
+            y: cy + (p.y - cy) * 1.15
+        }));
+        ctx.moveTo(expanded[0].x, expanded[0].y);
+        expanded.slice(1).forEach(p => ctx.lineTo(p.x, p.y));
+        ctx.closePath();
+        ctx.fill();
+        ctx.globalAlpha = 0.4;
+        ctx.stroke();
+        // Label
+        ctx.globalAlpha = 0.8;
+        ctx.fillStyle = '#4f46e5';
+        ctx.font = 'bold 11px sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText(h.label, cx, cy - 5);
+        ctx.restore();
+    });
+});
+</script>
+</body>
+</html>
