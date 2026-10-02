@@ -693,3 +693,109 @@ form {
         opacity: 0;
     }
 }
+
+/* ── Graphify: Estadísticas ─────────────────────────────────────────────────── */
+
+.stats-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 16px;
+}
+
+.stats-header h3 {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin: 0;
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--text-color);
+}
+
+.refresh-btn {
+    background: var(--card-bg);
+    border: 1px solid var(--border-color);
+    border-radius: 50%;
+    width: 34px;
+    height: 34px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    color: var(--text-muted);
+    transition: var(--transition);
+}
+
+.refresh-btn:active {
+    transform: rotate(180deg);
+    color: var(--accent-color);
+}
+
+.kpi-row {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+    margin-bottom: 16px;
+    transition: opacity 0.3s;
+}
+
+.kpi-card {
+    background: var(--card-bg);
+    border: 1px solid var(--border-color);
+    border-radius: 14px;
+    padding: 12px 8px;
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.kpi-card.kpi-cerrado { border-color: rgba(191, 90, 242, 0.35); }
+.kpi-card.kpi-proceso  { border-color: rgba(48, 209, 88, 0.35); }
+
+.kpi-value {
+    font-size: 24px;
+    font-weight: 700;
+    color: var(--text-color);
+    line-height: 1;
+}
+
+.kpi-cerrado .kpi-value { color: #bf5af2; }
+.kpi-proceso .kpi-value { color: #30d158; }
+
+.kpi-label {
+    font-size: 10px;
+    font-weight: 500;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.chart-card {
+    background: var(--card-bg);
+    border: 1px solid var(--border-color);
+    border-radius: 16px;
+    padding: 16px;
+    margin-bottom: 14px;
+}
+
+.chart-title {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 12px;
+}
+
+.chart-wrapper {
+    display: flex;
+    justify-content: center;
+    max-height: 220px;
+}
+
+.chart-wrapper--bar {
+    max-height: 260px;
+    position: relative;
+}

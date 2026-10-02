@@ -33,8 +33,10 @@ if (window.location.hostname === '7-hue.github.io') {
 // 2. Elementos del DOM - Pestañas
 const tabRegistrar = document.getElementById('tabRegistrar');
 const tabVerListas = document.getElementById('tabVerListas');
+const tabEstadisticas = document.getElementById('tabEstadisticas');
 const contentRegistrar = document.getElementById('contentRegistrar');
 const contentVerListas = document.getElementById('contentVerListas');
+const contentEstadisticas = document.getElementById('contentEstadisticas');
 
 // Elementos del DOM - Formulario (14 campos)
 const crmForm = document.getElementById('crmForm');
@@ -79,17 +81,28 @@ tabVerListas.addEventListener('click', () => {
     fetchClients();
 });
 
+tabEstadisticas.addEventListener('click', () => {
+    switchTab('estadisticas');
+    fetchStats();
+});
+
 function switchTab(tab) {
+    tabRegistrar.classList.remove('active');
+    tabVerListas.classList.remove('active');
+    tabEstadisticas.classList.remove('active');
+    contentRegistrar.classList.remove('active');
+    contentVerListas.classList.remove('active');
+    contentEstadisticas.classList.remove('active');
+
     if (tab === 'registrar') {
         tabRegistrar.classList.add('active');
-        tabVerListas.classList.remove('active');
         contentRegistrar.classList.add('active');
-        contentVerListas.classList.remove('active');
-    } else {
-        tabRegistrar.classList.remove('active');
+    } else if (tab === 'listas') {
         tabVerListas.classList.add('active');
-        contentRegistrar.classList.remove('active');
         contentVerListas.classList.add('active');
+    } else {
+        tabEstadisticas.classList.add('active');
+        contentEstadisticas.classList.add('active');
     }
 }
 
@@ -424,4 +437,115 @@ function playHaptic(type = 'notification', style = 'success') {
     } catch (e) {
         console.log("HapticFeedback no disponible.");
     }
+}
+
+// ── Graphify: Estadísticas con Chart.js ──────────────────────────────────────
+
+const ESTADO_COLORS = {
+    'Interesado':         '#ff9f0a',
+    'En Proceso':         '#30d158',
+    'No Contesta':        '#ff453a',
+    'Llamar en Fecha':    '#ffd60a',
+    'Enviar Información': '#5ac8fa',
+    'Cerrado':            '#bf5af2',
+};
+const DEFAULT_COLOR = '#8e8e93';
+
+let chartDonutInstance = null;
+let chartBarInstance = null;
+
+async function fetchStats() {
+    const kpiRow = document.getElementById('kpiRow');
+    kpiRow.style.opacity = '0.4';
+
+    try {
+        const response = await fetch(`${API_BASE_URL}/api/stats`);
+        const data = await response.json();
+
+        if (!response.ok) throw new Error(data.error || 'Error al obtener estadísticas');
+
+        renderStats(data.stats, data.total);
+        kpiRow.style.opacity = '1';
+    } catch (err) {
+        console.error('Error en fetchStats:', err);
+        showToast('No se pudieron cargar las estadísticas', 'error');
+        kpiRow.style.opacity = '1';
+    }
+}
+
+function renderStats(stats, total) {
+    const labels  = stats.map(s => s.estado || 'Sin estado');
+    const counts  = stats.map(s => s.count);
+    const colors  = labels.map(l => ESTADO_COLORS[l] || DEFAULT_COLOR);
+
+    // KPIs
+    document.getElementById('kpiTotal').textContent   = total;
+    const cerrado = stats.find(s => s.estado === 'Cerrado');
+    const proceso = stats.find(s => s.estado === 'En Proceso');
+    document.getElementById('kpiCerrado').textContent = cerrado ? cerrado.count : 0;
+    document.getElementById('kpiProceso').textContent = proceso ? proceso.count : 0;
+
+    const chartDefaults = {
+        plugins: { legend: { labels: { color: '#ffffff', font: { family: "'Outfit', sans-serif", size: 11 } } } }
+    };
+
+    // Gráfica de Dona
+    if (chartDonutInstance) chartDonutInstance.destroy();
+    chartDonutInstance = new Chart(document.getElementById('chartDonut'), {
+        type: 'doughnut',
+        data: {
+            labels,
+            datasets: [{
+                data: counts,
+                backgroundColor: colors,
+                borderColor: 'rgba(11,11,14,0.8)',
+                borderWidth: 2,
+                hoverOffset: 8,
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: true,
+            cutout: '62%',
+            plugins: {
+                ...chartDefaults.plugins,
+                tooltip: { callbacks: { label: ctx => ` ${ctx.label}: ${ctx.parsed} (${Math.round(ctx.parsed / total * 100)}%)` } }
+            }
+        }
+    });
+
+    // Gráfica de Barras
+    if (chartBarInstance) chartBarInstance.destroy();
+    chartBarInstance = new Chart(document.getElementById('chartBar'), {
+        type: 'bar',
+        data: {
+            labels,
+            datasets: [{
+                label: 'Prospectos',
+                data: counts,
+                backgroundColor: colors,
+                borderRadius: 6,
+                borderSkipped: false,
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            indexAxis: 'y',
+            plugins: {
+                ...chartDefaults.plugins,
+                legend: { display: false },
+            },
+            scales: {
+                x: {
+                    ticks: { color: '#8e8e93', font: { family: "'Outfit', sans-serif" } },
+                    grid:  { color: 'rgba(255,255,255,0.06)' },
+                },
+                y: {
+                    ticks: { color: '#ffffff', font: { family: "'Outfit', sans-serif", size: 11 } },
+                    grid:  { display: false },
+                }
+            }
+        }
+    });
 }

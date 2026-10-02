@@ -104,6 +104,18 @@ def listar_clientes():
         return jsonify({"error": f"Error al realizar la consulta: {str(e)}"}), 500
 
 
+@app.route('/api/stats', methods=['GET'])
+def estadisticas():
+    """Endpoint para retornar conteo de clientes agrupado por estado."""
+    try:
+        stats = database.get_stats_by_estado()
+        total = sum(s['count'] for s in stats)
+        return jsonify({"stats": stats, "total": total}), 200
+    except Exception as e:
+        print(f"Error al calcular estadísticas: {e}")
+        return jsonify({"error": str(e)}), 500
+
+
 # 3. Configuración del Bot de Telegram
 TOKEN = os.environ.get('TELEGRAM_BOT_TOKEN', '7234567890:ABCdefGHIjklMNOpqrSTUvwxYZ123456789')
 bot = telebot.TeleBot(TOKEN)

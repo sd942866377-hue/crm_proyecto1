@@ -13,6 +13,9 @@
     
     <!-- Estilos Premium -->
     <link rel="stylesheet" href="style.css">
+
+    <!-- Chart.js (Graphify) -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 </head>
 <body>
 
@@ -34,6 +37,10 @@
             <button class="tab-btn" id="tabVerListas">
                 <span class="material-icons">list_alt</span>
                 <span>Ver Listas</span>
+            </button>
+            <button class="tab-btn" id="tabEstadisticas">
+                <span class="material-icons">bar_chart</span>
+                <span>Gráficas</span>
             </button>
         </div>
 
@@ -201,6 +208,48 @@
                     <span>Sig.</span>
                     <span class="material-icons">navigate_next</span>
                 </button>
+            </div>
+        </div>
+
+        <!-- Pestaña 3: Estadísticas (Graphify) -->
+        <div class="tab-content" id="contentEstadisticas">
+            <div class="stats-header">
+                <h3><span class="material-icons">bar_chart</span> Estadísticas del CRM</h3>
+                <button class="refresh-btn" id="btnRefreshStats" onclick="fetchStats()">
+                    <span class="material-icons">refresh</span>
+                </button>
+            </div>
+
+            <!-- KPIs Row -->
+            <div class="kpi-row" id="kpiRow">
+                <div class="kpi-card">
+                    <span class="kpi-value" id="kpiTotal">—</span>
+                    <span class="kpi-label">Total</span>
+                </div>
+                <div class="kpi-card kpi-cerrado">
+                    <span class="kpi-value" id="kpiCerrado">—</span>
+                    <span class="kpi-label">Cerrados</span>
+                </div>
+                <div class="kpi-card kpi-proceso">
+                    <span class="kpi-value" id="kpiProceso">—</span>
+                    <span class="kpi-label">En Proceso</span>
+                </div>
+            </div>
+
+            <!-- Gráfica de Dona: Distribución por Estado -->
+            <div class="chart-card">
+                <div class="chart-title">Distribución por Estado</div>
+                <div class="chart-wrapper">
+                    <canvas id="chartDonut"></canvas>
+                </div>
+            </div>
+
+            <!-- Gráfica de Barras: Conteo por Estado -->
+            <div class="chart-card">
+                <div class="chart-title">Prospectos por Estado</div>
+                <div class="chart-wrapper chart-wrapper--bar">
+                    <canvas id="chartBar"></canvas>
+                </div>
             </div>
         </div>
     </div>

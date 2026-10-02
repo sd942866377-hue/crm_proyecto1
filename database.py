@@ -127,5 +127,20 @@ def get_clientes(estado=None, page=1, per_page=10):
     conn.close()
     return clientes_list, total_records
 
+def get_stats_by_estado():
+    """Retorna conteo de registros agrupado por estado para las gráficas."""
+    conn = sqlite3.connect(DB_PATH)
+    cursor = conn.cursor()
+    cursor.execute("""
+        SELECT estado, COUNT(*) as count
+        FROM base_rpmkt
+        GROUP BY estado
+        ORDER BY count DESC
+    """)
+    rows = cursor.fetchall()
+    conn.close()
+    return [{"estado": row[0], "count": row[1]} for row in rows]
+
+
 if __name__ == '__main__':
     init_db()
