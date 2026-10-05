@@ -683,6 +683,117 @@ form {
     animation: confetti-fall 1.5s forwards ease-out;
 }
 
+/* ── Graphify (Statistics Tab) ─────────────────────────────────────────── */
+
+.kpi-row {
+    display: flex;
+    gap: 12px;
+    margin-bottom: 16px;
+}
+
+.kpi-card {
+    flex: 1;
+    background: var(--card-bg);
+    border: 1px solid var(--border-color);
+    border-radius: 16px;
+    padding: 16px 12px;
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.kpi-card.kpi-accent {
+    border-color: rgba(191, 90, 242, 0.3);
+    background: rgba(191, 90, 242, 0.08);
+}
+
+.kpi-value {
+    font-size: 2rem;
+    font-weight: 700;
+    color: var(--text-color);
+    line-height: 1;
+}
+
+.kpi-card.kpi-accent .kpi-value {
+    color: #bf5af2;
+}
+
+.kpi-label {
+    font-size: 11px;
+    font-weight: 500;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.chart-card {
+    background: var(--card-bg);
+    border: 1px solid var(--border-color);
+    border-radius: 16px;
+    padding: 16px;
+    margin-bottom: 14px;
+}
+
+.chart-title {
+    margin: 0 0 14px 0;
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--accent-color);
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.chart-title .material-icons {
+    font-size: 16px;
+}
+
+.chart-wrap {
+    position: relative;
+    width: 100%;
+    max-width: 280px;
+    margin: 0 auto;
+}
+
+.chart-wrap-bar {
+    max-width: 100%;
+    height: 180px;
+}
+
+.btn-refresh {
+    width: 100%;
+    background: var(--card-bg);
+    border: 1px solid var(--border-color);
+    color: var(--text-muted);
+    border-radius: 12px;
+    padding: 12px;
+    font-size: 13px;
+    font-weight: 600;
+    font-family: var(--font-family);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    transition: var(--transition);
+    margin-bottom: 8px;
+}
+
+.btn-refresh:hover {
+    border-color: var(--border-hover);
+    color: var(--text-color);
+}
+
+@keyframes spin {
+    from { transform: rotate(0deg); }
+    to   { transform: rotate(360deg); }
+}
+
+/* ────────────────────────────────────────────────────────────────────────── */
+
 @keyframes confetti-fall {
     0% {
         transform: translateY(-10px) rotate(0deg);

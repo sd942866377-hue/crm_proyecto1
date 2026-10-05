@@ -33,8 +33,10 @@ if (window.location.hostname === '7-hue.github.io') {
 // 2. Elementos del DOM - Pestañas
 const tabRegistrar = document.getElementById('tabRegistrar');
 const tabVerListas = document.getElementById('tabVerListas');
+const tabEstadisticas = document.getElementById('tabEstadisticas');
 const contentRegistrar = document.getElementById('contentRegistrar');
 const contentVerListas = document.getElementById('contentVerListas');
+const contentEstadisticas = document.getElementById('contentEstadisticas');
 
 // Elementos del DOM - Formulario (14 campos)
 const crmForm = document.getElementById('crmForm');
@@ -79,17 +81,24 @@ tabVerListas.addEventListener('click', () => {
     fetchClients();
 });
 
+tabEstadisticas.addEventListener('click', () => {
+    switchTab('estadisticas');
+    fetchEstadisticas();
+});
+
 function switchTab(tab) {
+    [tabRegistrar, tabVerListas, tabEstadisticas].forEach(t => t.classList.remove('active'));
+    [contentRegistrar, contentVerListas, contentEstadisticas].forEach(c => c.classList.remove('active'));
+
     if (tab === 'registrar') {
         tabRegistrar.classList.add('active');
-        tabVerListas.classList.remove('active');
         contentRegistrar.classList.add('active');
-        contentVerListas.classList.remove('active');
-    } else {
-        tabRegistrar.classList.remove('active');
+    } else if (tab === 'listas') {
         tabVerListas.classList.add('active');
-        contentRegistrar.classList.remove('active');
         contentVerListas.classList.add('active');
+    } else {
+        tabEstadisticas.classList.add('active');
+        contentEstadisticas.classList.add('active');
     }
 }
 
@@ -423,5 +432,177 @@ function playHaptic(type = 'notification', style = 'success') {
         }
     } catch (e) {
         console.log("HapticFeedback no disponible.");
+    }
+}
+
+// ─── Graphify (Statistics Tab) ───────────────────────────────────────────────
+
+const STATE_COLORS = {
+    'Interesado':        '#ff9f0a',
+    'En Proceso':        '#30d158',
+    'No Contesta':       '#ff453a',
+    'Llamar en Fecha':   '#ffd60a',
+    'Enviar Información':'#5ac8fa',
+    'Cerrado':           '#bf5af2',
+};
+
+const CHART_DEFAULTS = {
+    color: '#ffffff',
+    font: { family: "'Outfit', sans-serif", size: 12 },
+};
+
+let chartEstadoInst = null;
+let chartSeguimientoInst = null;
+let chartDistritoInst = null;
+
+async function fetchEstadisticas() {
+    const loadingHtml = `
+        <div style="text-align:center;padding:30px;color:var(--text-muted);">
+            <span class="material-icons" style="animation:spin 1s infinite linear;font-size:24px;">sync</span>
+            <p style="margin-top:8px;font-size:13px;">Cargando estadísticas…</p>
+        </div>`;
+
+    // Show spinner in the first chart card while loading
+    const wrap = document.querySelector('#contentEstadisticas .chart-card');
+    if (wrap) wrap.querySelector('.chart-wrap').innerHTML = loadingHtml;
+
+    try {
+        const res = await fetch(`${API_BASE_URL}/api/estadisticas`);
+        if (!res.ok) throw new Error('HTTP ' + res.status);
+        const data = await res.json();
+        renderEstadisticas(data);
+    } catch (err) {
+        console.error('Error fetching stats:', err);
+        showToast('Error al cargar estadísticas', 'error');
+    }
+}
+
+function renderEstadisticas(data) {
+    // KPI cards
+    document.getElementById('kpiTotal').textContent = data.total ?? '—';
+    document.getElementById('kpiCerrados').textContent = data.cerrados ?? '—';
+
+    // ── Chart 1: Estado de Venta (donut) ──────────────────────────────────
+    const estadoLabels = data.por_estado.map(d => d.estado);
+    const estadoValues = data.por_estado.map(d => d.total);
+    const estadoColors = estadoLabels.map(l => STATE_COLORS[l] || '#636366');
+
+    const ctx1 = document.getElementById('chartEstado');
+    // Restore canvas if it was replaced by spinner
+    ctx1.style.display = '';
+
+    if (chartEstadoInst) chartEstadoInst.destroy();
+    chartEstadoInst = new Chart(ctx1, {
+        type: 'doughnut',
+        data: {
+            labels: estadoLabels,
+            datasets: [{
+                data: estadoValues,
+                backgroundColor: estadoColors,
+                borderColor: 'rgba(20,20,25,0.9)',
+                borderWidth: 2,
+                hoverOffset: 6,
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: true,
+            cutout: '62%',
+            plugins: {
+                legend: {
+                    position: 'bottom',
+                    labels: { ...CHART_DEFAULTS, boxWidth: 12, padding: 10 },
+                },
+                tooltip: {
+                    callbacks: {
+                        label: ctx => ` ${ctx.label}: ${ctx.parsed} (${Math.round(ctx.parsed / estadoValues.reduce((a,b)=>a+b,0)*100)}%)`,
+                    }
+                }
+            }
+        }
+    });
+
+    // ── Chart 2: Estado Seguimiento (horizontal bar) ──────────────────────
+    const segLabels = data.por_seguimiento.map(d => d.estado);
+    const segValues = data.por_seguimiento.map(d => d.total);
+
+    const ctx2 = document.getElementById('chartSeguimiento');
+    if (chartSeguimientoInst) chartSeguimientoInst.destroy();
+    chartSeguimientoInst = new Chart(ctx2, {
+        type: 'bar',
+        data: {
+            labels: segLabels,
+            datasets: [{
+                label: 'Registros',
+                data: segValues,
+                backgroundColor: 'rgba(10,132,255,0.7)',
+                borderColor: '#0a84ff',
+                borderWidth: 1,
+                borderRadius: 6,
+            }]
+        },
+        options: {
+            indexAxis: 'y',
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: { display: false },
+                tooltip: { callbacks: { label: ctx => ` ${ctx.parsed.x}` } }
+            },
+            scales: {
+                x: {
+                    ticks: { ...CHART_DEFAULTS, maxTicksLimit: 5 },
+                    grid: { color: 'rgba(255,255,255,0.06)' },
+                },
+                y: {
+                    ticks: { ...CHART_DEFAULTS, font: { family: "'Outfit', sans-serif", size: 11 } },
+                    grid: { display: false },
+                }
+            }
+        }
+    });
+
+    // ── Chart 3: Top Distritos ────────────────────────────────────────────
+    const distCard = document.getElementById('chartDistritoCard');
+    if (!data.por_distrito || data.por_distrito.length === 0) {
+        distCard.style.display = 'none';
+    } else {
+        distCard.style.display = '';
+        const distLabels = data.por_distrito.map(d => d.distrito);
+        const distValues = data.por_distrito.map(d => d.total);
+        const distColors = ['#30d158','#0a84ff','#ff9f0a','#bf5af2','#ff453a','#5ac8fa'];
+
+        const ctx3 = document.getElementById('chartDistrito');
+        if (chartDistritoInst) chartDistritoInst.destroy();
+        chartDistritoInst = new Chart(ctx3, {
+            type: 'bar',
+            data: {
+                labels: distLabels,
+                datasets: [{
+                    label: 'Clientes',
+                    data: distValues,
+                    backgroundColor: distColors.slice(0, distLabels.length),
+                    borderRadius: 6,
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { display: false },
+                    tooltip: { callbacks: { label: ctx => ` ${ctx.parsed.y}` } }
+                },
+                scales: {
+                    x: {
+                        ticks: { ...CHART_DEFAULTS, font: { family: "'Outfit', sans-serif", size: 11 } },
+                        grid: { display: false },
+                    },
+                    y: {
+                        ticks: { ...CHART_DEFAULTS, maxTicksLimit: 5 },
+                        grid: { color: 'rgba(255,255,255,0.06)' },
+                    }
+                }
+            }
+        });
     }
 }

@@ -7,6 +7,8 @@
     
     <!-- Telegram WebApp SDK -->
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <!-- Chart.js -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
     
     <!-- Google Fonts & Material Icons -->
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
@@ -34,6 +36,10 @@
             <button class="tab-btn" id="tabVerListas">
                 <span class="material-icons">list_alt</span>
                 <span>Ver Listas</span>
+            </button>
+            <button class="tab-btn" id="tabEstadisticas">
+                <span class="material-icons">bar_chart</span>
+                <span>Gráficos</span>
             </button>
         </div>
 
@@ -204,6 +210,56 @@
             </div>
         </div>
     </div>
+
+        <!-- Pestaña 3: Estadísticas (Graphify) -->
+        <div class="tab-content" id="contentEstadisticas">
+            <!-- KPI Cards -->
+            <div class="kpi-row" id="kpiRow">
+                <div class="kpi-card">
+                    <span class="kpi-value" id="kpiTotal">—</span>
+                    <span class="kpi-label">Total registros</span>
+                </div>
+                <div class="kpi-card kpi-accent">
+                    <span class="kpi-value" id="kpiCerrados">—</span>
+                    <span class="kpi-label">Ventas cerradas</span>
+                </div>
+            </div>
+
+            <!-- Gráfico 1: Estado de Ventas (donut) -->
+            <div class="chart-card">
+                <h4 class="chart-title">
+                    <span class="material-icons">donut_large</span> Estado de Venta
+                </h4>
+                <div class="chart-wrap">
+                    <canvas id="chartEstado"></canvas>
+                </div>
+            </div>
+
+            <!-- Gráfico 2: Estado de Seguimiento (barras horizontales) -->
+            <div class="chart-card">
+                <h4 class="chart-title">
+                    <span class="material-icons">assignment</span> Seguimiento
+                </h4>
+                <div class="chart-wrap chart-wrap-bar">
+                    <canvas id="chartSeguimiento"></canvas>
+                </div>
+            </div>
+
+            <!-- Gráfico 3: Top Distritos (barras) -->
+            <div class="chart-card" id="chartDistritoCard">
+                <h4 class="chart-title">
+                    <span class="material-icons">location_on</span> Top Distritos
+                </h4>
+                <div class="chart-wrap chart-wrap-bar">
+                    <canvas id="chartDistrito"></canvas>
+                </div>
+            </div>
+
+            <!-- Botón actualizar -->
+            <button class="btn-refresh" id="btnRefreshStats" onclick="fetchEstadisticas()">
+                <span class="material-icons">refresh</span> Actualizar
+            </button>
+        </div>
 
     <!-- Contenedor global de Toasts -->
     <div id="toast-container"></div>

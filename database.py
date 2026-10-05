@@ -127,5 +127,35 @@ def get_clientes(estado=None, page=1, per_page=10):
     conn.close()
     return clientes_list, total_records
 
+def get_estadisticas():
+    """Returns aggregate counts for dashboard charts."""
+    conn = sqlite3.connect(DB_PATH)
+    cursor = conn.cursor()
+
+    cursor.execute("SELECT estado, COUNT(*) FROM base_rpmkt GROUP BY estado ORDER BY COUNT(*) DESC")
+    por_estado = [{"estado": r[0] or "Sin estado", "total": r[1]} for r in cursor.fetchall()]
+
+    cursor.execute("SELECT estado_seguimiento, COUNT(*) FROM base_rpmkt GROUP BY estado_seguimiento ORDER BY COUNT(*) DESC LIMIT 7")
+    por_seguimiento = [{"estado": r[0] or "Sin estado", "total": r[1]} for r in cursor.fetchall()]
+
+    cursor.execute("SELECT distrito, COUNT(*) FROM base_rpmkt WHERE distrito != '' AND distrito IS NOT NULL GROUP BY distrito ORDER BY COUNT(*) DESC LIMIT 6")
+    por_distrito = [{"distrito": r[0], "total": r[1]} for r in cursor.fetchall()]
+
+    cursor.execute("SELECT COUNT(*) FROM base_rpmkt")
+    total = cursor.fetchone()[0]
+
+    cursor.execute("SELECT COUNT(*) FROM base_rpmkt WHERE estado = 'Cerrado'")
+    cerrados = cursor.fetchone()[0]
+
+    conn.close()
+    return {
+        "total": total,
+        "cerrados": cerrados,
+        "por_estado": por_estado,
+        "por_seguimiento": por_seguimiento,
+        "por_distrito": por_distrito,
+    }
+
+
 if __name__ == '__main__':
     init_db()
