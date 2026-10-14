@@ -3,6 +3,10 @@
     "playwright": {
       "command": "npx",
       "args": ["@playwright/mcp@latest"]
+    },
+    "rea": {
+      "command": "npx",
+      "args": ["rea-agents@latest"]
     }
   }
 }
