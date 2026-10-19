@@ -1,0 +1,14 @@
+<properties>
+    <!-- Formato de hora: 0 = usar config del dispositivo, 1 = forzar 24h, 2 = forzar 12h -->
+    <property id="TimeFormat" type="number">0</property>
+    <!-- Mostrar segundos en modo activo -->
+    <property id="ShowSeconds" type="boolean">true</property>
+    <!-- Meta de pasos diarios -->
+    <property id="StepGoal" type="number">10000</property>
+    <!-- Tema de color: 0=verde, 1=naranja, 2=azul, 3=blanco -->
+    <property id="ColorTheme" type="number">0</property>
+    <!-- Mostrar amanecer/atardecer en barra inferior -->
+    <property id="ShowSunInfo" type="boolean">true</property>
+    <!-- Mostrar segunda zona horaria (offset en minutos) -->
+    <property id="SecondTZ" type="number">0</property>
+</properties>
