@@ -1,0 +1,6 @@
+[submodule ".claude/skills/skills"]
+	path = .claude/skills/skills
+	url = https://github.com/emilkowalski/skills.git
+[submodule ".claude/skills/taste-skill"]
+	path = .claude/skills/taste-skill
+	url = https://github.com/Leonxlnx/taste-skill.git
