@@ -693,3 +693,278 @@ form {
         opacity: 0;
     }
 }
+
+/* ── FOOTBALL & APUESTAS ─────────────────────────────────────── */
+.football-subnav {
+    display: flex;
+    gap: 6px;
+    overflow-x: auto;
+    padding: 10px 0 6px;
+    scrollbar-width: none;
+}
+.football-subnav::-webkit-scrollbar { display: none; }
+
+.fb-nav-btn {
+    flex-shrink: 0;
+    background: var(--card-bg);
+    border: 1px solid var(--border-color);
+    border-radius: 20px;
+    color: var(--text-muted);
+    font-family: var(--font-family);
+    font-size: 12px;
+    padding: 6px 12px;
+    cursor: pointer;
+    transition: var(--transition);
+    white-space: nowrap;
+}
+.fb-nav-btn.active {
+    background: var(--accent-color);
+    border-color: var(--accent-color);
+    color: #fff;
+}
+
+.football-filters {
+    display: flex;
+    gap: 8px;
+    align-items: flex-end;
+    margin: 10px 0;
+    flex-wrap: wrap;
+}
+.fb-filter-group {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    flex: 1;
+    min-width: 120px;
+}
+.fb-filter-group label {
+    font-size: 11px;
+    color: var(--text-muted);
+    font-weight: 500;
+}
+.fb-filter-group select {
+    background: var(--card-bg);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    color: var(--text-color);
+    font-family: var(--font-family);
+    font-size: 13px;
+    padding: 8px 10px;
+    outline: none;
+    width: 100%;
+}
+.fb-load-btn {
+    background: var(--accent-color);
+    border: none;
+    border-radius: 8px;
+    color: #fff;
+    font-family: var(--font-family);
+    font-size: 13px;
+    font-weight: 600;
+    padding: 8px 16px;
+    cursor: pointer;
+    align-self: flex-end;
+    transition: var(--transition);
+    white-space: nowrap;
+}
+.fb-load-btn:hover { background: var(--accent-hover); }
+
+.fb-section { display: none; }
+.fb-section.active { display: block; }
+
+.fb-section-header {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text-color);
+    margin: 10px 0 8px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+.live-dot {
+    width: 8px; height: 8px;
+    background: #ff453a;
+    border-radius: 50%;
+    animation: blink 1.2s infinite;
+}
+@keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.2} }
+
+.fb-refresh-btn {
+    margin-left: auto;
+    background: none;
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+    color: var(--text-muted);
+    cursor: pointer;
+    font-size: 16px;
+    padding: 2px 8px;
+    transition: var(--transition);
+}
+.fb-refresh-btn:hover { color: var(--accent-color); border-color: var(--accent-color); }
+
+.fb-list { display: flex; flex-direction: column; gap: 8px; }
+
+.fb-match-card {
+    background: var(--card-bg);
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    padding: 12px;
+    transition: var(--transition);
+}
+.fb-match-card:hover { border-color: var(--border-hover); }
+
+.fb-match-teams {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+}
+.fb-team {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    flex: 1;
+    text-align: center;
+}
+.fb-team img { width: 32px; height: 32px; object-fit: contain; }
+.fb-team-name { font-size: 12px; font-weight: 500; color: var(--text-color); }
+
+.fb-score {
+    font-size: 22px;
+    font-weight: 700;
+    color: var(--accent-color);
+    min-width: 60px;
+    text-align: center;
+}
+.fb-match-meta {
+    margin-top: 8px;
+    display: flex;
+    justify-content: space-between;
+    font-size: 11px;
+    color: var(--text-muted);
+}
+.fb-status-live { color: #ff453a; font-weight: 600; }
+.fb-status-ns   { color: var(--color-interesado); }
+.fb-status-ft   { color: var(--text-muted); }
+
+/* Tabla de posiciones */
+.fb-standings-table { overflow-x: auto; }
+.fb-standings-table table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 12px;
+}
+.fb-standings-table th {
+    background: rgba(10,132,255,0.15);
+    color: var(--accent-color);
+    padding: 7px 6px;
+    text-align: center;
+    font-weight: 600;
+    border-bottom: 1px solid var(--border-color);
+}
+.fb-standings-table td {
+    padding: 7px 6px;
+    text-align: center;
+    border-bottom: 1px solid var(--border-color);
+    color: var(--text-color);
+}
+.fb-standings-table td:nth-child(2) { text-align: left; }
+.fb-standings-table tr:nth-child(even) td { background: rgba(255,255,255,0.02); }
+.fb-pos-top3 { color: var(--accent-color); font-weight: 700; }
+.fb-pos-rel  { color: var(--color-en-proceso); }
+.fb-pos-drop { color: var(--color-no-contesta); }
+
+/* Goleadores */
+.fb-scorer-card {
+    background: var(--card-bg);
+    border: 1px solid var(--border-color);
+    border-radius: 10px;
+    padding: 10px 12px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+.fb-scorer-rank { font-size: 18px; font-weight: 700; color: var(--accent-color); min-width: 28px; }
+.fb-scorer-info { flex: 1; }
+.fb-scorer-name { font-size: 13px; font-weight: 600; color: var(--text-color); }
+.fb-scorer-team { font-size: 11px; color: var(--text-muted); }
+.fb-scorer-goals { font-size: 20px; font-weight: 700; color: var(--color-cerrado); }
+
+/* Predicciones */
+.fb-predict-box { margin-top: 16px; }
+.fb-prediction-card {
+    background: var(--card-bg);
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    padding: 14px;
+}
+.fb-predict-advice {
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--color-en-proceso);
+    margin-bottom: 8px;
+}
+.fb-predict-percent {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin-top: 8px;
+}
+.fb-percent-item {
+    background: rgba(255,255,255,0.05);
+    border-radius: 8px;
+    padding: 6px 10px;
+    font-size: 12px;
+    text-align: center;
+    flex: 1;
+    min-width: 60px;
+}
+.fb-percent-item span { display: block; font-size: 16px; font-weight: 700; color: var(--accent-color); }
+
+/* Search */
+.fb-search-box {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 10px;
+}
+.fb-search-box input {
+    flex: 1;
+    background: var(--card-bg);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    color: var(--text-color);
+    font-family: var(--font-family);
+    font-size: 13px;
+    padding: 9px 12px;
+    outline: none;
+}
+.fb-search-box input:focus { border-color: var(--accent-color); }
+.fb-search-box button {
+    background: var(--accent-color);
+    border: none;
+    border-radius: 8px;
+    color: #fff;
+    cursor: pointer;
+    font-family: var(--font-family);
+    font-size: 13px;
+    font-weight: 600;
+    padding: 9px 14px;
+    transition: var(--transition);
+}
+.fb-search-box button:hover { background: var(--accent-hover); }
+
+.fb-hint { font-size: 12px; color: var(--text-muted); text-align: center; padding: 20px 0; }
+
+.fb-team-result-card {
+    background: var(--card-bg);
+    border: 1px solid var(--border-color);
+    border-radius: 10px;
+    padding: 10px 12px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+.fb-team-result-card img { width: 36px; height: 36px; object-fit: contain; }
+.fb-team-result-name { font-size: 13px; font-weight: 600; color: var(--text-color); }
+.fb-team-result-country { font-size: 11px; color: var(--text-muted); }

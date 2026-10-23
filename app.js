@@ -33,8 +33,10 @@ if (window.location.hostname === '7-hue.github.io') {
 // 2. Elementos del DOM - Pestañas
 const tabRegistrar = document.getElementById('tabRegistrar');
 const tabVerListas = document.getElementById('tabVerListas');
+const tabFutbol = document.getElementById('tabFutbol');
 const contentRegistrar = document.getElementById('contentRegistrar');
 const contentVerListas = document.getElementById('contentVerListas');
+const contentFutbol = document.getElementById('contentFutbol');
 
 // Elementos del DOM - Formulario (14 campos)
 const crmForm = document.getElementById('crmForm');
@@ -79,17 +81,27 @@ tabVerListas.addEventListener('click', () => {
     fetchClients();
 });
 
+tabFutbol.addEventListener('click', () => {
+    switchTab('futbol');
+});
+
 function switchTab(tab) {
+    tabRegistrar.classList.remove('active');
+    tabVerListas.classList.remove('active');
+    tabFutbol.classList.remove('active');
+    contentRegistrar.classList.remove('active');
+    contentVerListas.classList.remove('active');
+    contentFutbol.classList.remove('active');
+
     if (tab === 'registrar') {
         tabRegistrar.classList.add('active');
-        tabVerListas.classList.remove('active');
         contentRegistrar.classList.add('active');
-        contentVerListas.classList.remove('active');
-    } else {
-        tabRegistrar.classList.remove('active');
+    } else if (tab === 'listas') {
         tabVerListas.classList.add('active');
-        contentRegistrar.classList.remove('active');
         contentVerListas.classList.add('active');
+    } else if (tab === 'futbol') {
+        tabFutbol.classList.add('active');
+        contentFutbol.classList.add('active');
     }
 }
 
@@ -425,3 +437,261 @@ function playHaptic(type = 'notification', style = 'success') {
         console.log("HapticFeedback no disponible.");
     }
 }
+
+// ── FOOTBALL & APUESTAS ──────────────────────────────────────────────────────
+
+const fbNavBtns   = document.querySelectorAll('.fb-nav-btn');
+const fbSections  = document.querySelectorAll('.fb-section');
+const fbLoadBtn   = document.getElementById('fbLoadBtn');
+const fbRefreshLive = document.getElementById('fbRefreshLive');
+const fbLeague    = document.getElementById('fbLeague');
+const fbSeason    = document.getElementById('fbSeason');
+
+const fbLiveList      = document.getElementById('fbLiveList');
+const fbFixturesList  = document.getElementById('fbFixturesList');
+const fbStandingsList = document.getElementById('fbStandingsList');
+const fbTopScorersList= document.getElementById('fbTopScorersList');
+
+const fbTeamSearch    = document.getElementById('fbTeamSearch');
+const fbSearchBtn     = document.getElementById('fbSearchBtn');
+const fbSearchResults = document.getElementById('fbSearchResults');
+
+const fbFixtureId      = document.getElementById('fbFixtureId');
+const fbPredictBtn     = document.getElementById('fbPredictBtn');
+const fbPredictionResult = document.getElementById('fbPredictionResult');
+
+// Sub-navegación de secciones de fútbol
+fbNavBtns.forEach(btn => {
+    btn.addEventListener('click', () => {
+        fbNavBtns.forEach(b => b.classList.remove('active'));
+        fbSections.forEach(s => s.classList.remove('active'));
+        btn.classList.add('active');
+        const section = btn.dataset.section;
+        document.getElementById(`fbSection${capitalize(section)}`).classList.add('active');
+    });
+});
+
+function capitalize(str) {
+    return str.charAt(0).toUpperCase() + str.slice(1);
+}
+
+// Botón "Cargar"
+fbLoadBtn.addEventListener('click', () => {
+    const activeNav = document.querySelector('.fb-nav-btn.active');
+    const section = activeNav ? activeNav.dataset.section : 'live';
+    loadFbSection(section);
+});
+
+// Refresh en vivo
+fbRefreshLive.addEventListener('click', () => loadFbSection('live'));
+
+function loadFbSection(section) {
+    const league  = fbLeague.value;
+    const season  = fbSeason.value;
+    if (section === 'live')        loadLive();
+    else if (section === 'fixtures')   loadFixtures(league, season);
+    else if (section === 'standings')  loadStandings(league, season);
+    else if (section === 'topscorers') loadTopScorers(league, season);
+}
+
+// Búsqueda de equipo
+fbSearchBtn.addEventListener('click', () => {
+    const name = fbTeamSearch.value.trim();
+    if (!name) return;
+    fbSearchResults.innerHTML = '<p class="fb-hint">Buscando...</p>';
+    fetch(`/api/football/search/team?name=${encodeURIComponent(name)}`)
+        .then(r => r.json())
+        .then(data => renderTeamSearch(data))
+        .catch(() => { fbSearchResults.innerHTML = '<p class="fb-hint">Error al buscar</p>'; });
+});
+
+// Predicción por ID
+fbPredictBtn.addEventListener('click', () => {
+    const id = fbFixtureId.value.trim();
+    if (!id) return;
+    fbPredictionResult.innerHTML = '<p class="fb-hint">Cargando predicción...</p>';
+    fetch(`/api/football/predictions/${id}`)
+        .then(r => r.json())
+        .then(data => renderPrediction(data))
+        .catch(() => { fbPredictionResult.innerHTML = '<p class="fb-hint">Error al cargar predicción</p>'; });
+});
+
+// ── LOADERS ──────────────────────────────────────────────────────────────────
+
+function loadLive() {
+    fbLiveList.innerHTML = '<p class="fb-hint">Cargando partidos en vivo...</p>';
+    fetch('/api/football/live')
+        .then(r => r.json())
+        .then(data => renderMatches(fbLiveList, data, true))
+        .catch(() => { fbLiveList.innerHTML = '<p class="fb-hint">Error de conexión</p>'; });
+}
+
+function loadFixtures(league, season) {
+    fbFixturesList.innerHTML = '<p class="fb-hint">Cargando próximos partidos...</p>';
+    fetch(`/api/football/fixtures?league=${league}&season=${season}&next=15`)
+        .then(r => r.json())
+        .then(data => renderMatches(fbFixturesList, data, false))
+        .catch(() => { fbFixturesList.innerHTML = '<p class="fb-hint">Error de conexión</p>'; });
+}
+
+function loadStandings(league, season) {
+    fbStandingsList.innerHTML = '<p class="fb-hint">Cargando tabla...</p>';
+    fetch(`/api/football/standings?league=${league}&season=${season}`)
+        .then(r => r.json())
+        .then(data => renderStandings(data))
+        .catch(() => { fbStandingsList.innerHTML = '<p class="fb-hint">Error de conexión</p>'; });
+}
+
+function loadTopScorers(league, season) {
+    fbTopScorersList.innerHTML = '<p class="fb-hint">Cargando goleadores...</p>';
+    fetch(`/api/football/topscorers?league=${league}&season=${season}`)
+        .then(r => r.json())
+        .then(data => renderTopScorers(data))
+        .catch(() => { fbTopScorersList.innerHTML = '<p class="fb-hint">Error de conexión</p>'; });
+}
+
+// ── RENDERERS ─────────────────────────────────────────────────────────────────
+
+function renderMatches(container, data, isLive) {
+    if (data.error) {
+        container.innerHTML = `<p class="fb-hint">⚠️ ${data.error}</p>`;
+        return;
+    }
+    const fixtures = data.response || [];
+    if (!fixtures.length) {
+        container.innerHTML = `<p class="fb-hint">${isLive ? 'No hay partidos en vivo ahora' : 'No hay partidos próximos'}</p>`;
+        return;
+    }
+    container.innerHTML = fixtures.map(f => {
+        const home  = f.teams.home;
+        const away  = f.teams.away;
+        const goals = f.goals;
+        const status = f.fixture.status;
+        const date  = new Date(f.fixture.date).toLocaleString('es-PE', { day:'2-digit', month:'short', hour:'2-digit', minute:'2-digit' });
+        const scoreStr = (goals.home !== null) ? `${goals.home} - ${goals.away}` : 'vs';
+        let statusLabel = '';
+        if (status.short === 'LIVE' || status.short === '1H' || status.short === 'HT' || status.short === '2H') {
+            statusLabel = `<span class="fb-status-live">🔴 ${status.elapsed}'</span>`;
+        } else if (status.short === 'NS') {
+            statusLabel = `<span class="fb-status-ns">📅 ${date}</span>`;
+        } else {
+            statusLabel = `<span class="fb-status-ft">⏱ FT</span>`;
+        }
+        return `
+        <div class="fb-match-card" data-id="${f.fixture.id}">
+            <div class="fb-match-teams">
+                <div class="fb-team">
+                    <img src="${home.logo}" alt="${home.name}" onerror="this.style.display='none'">
+                    <span class="fb-team-name">${home.name}</span>
+                </div>
+                <div class="fb-score">${scoreStr}</div>
+                <div class="fb-team">
+                    <img src="${away.logo}" alt="${away.name}" onerror="this.style.display='none'">
+                    <span class="fb-team-name">${away.name}</span>
+                </div>
+            </div>
+            <div class="fb-match-meta">
+                ${statusLabel}
+                <span>ID: ${f.fixture.id} · <a href="#" class="fb-predict-link" data-id="${f.fixture.id}" style="color:var(--accent-color);text-decoration:none">Predecir →</a></span>
+            </div>
+        </div>`;
+    }).join('');
+
+    // Click en "Predecir →" activa la sección de búsqueda con el ID precargado
+    container.querySelectorAll('.fb-predict-link').forEach(a => {
+        a.addEventListener('click', e => {
+            e.preventDefault();
+            fbFixtureId.value = a.dataset.id;
+            // ir a sección search
+            fbNavBtns.forEach(b => b.classList.remove('active'));
+            fbSections.forEach(s => s.classList.remove('active'));
+            document.querySelector('[data-section="search"]').classList.add('active');
+            document.getElementById('fbSectionSearch').classList.add('active');
+        });
+    });
+}
+
+function renderStandings(data) {
+    if (data.error) { fbStandingsList.innerHTML = `<p class="fb-hint">⚠️ ${data.error}</p>`; return; }
+    const league = (data.response || [])[0];
+    if (!league) { fbStandingsList.innerHTML = '<p class="fb-hint">Sin datos de tabla</p>'; return; }
+    const group = league.league.standings[0] || [];
+    const rows = group.map((t, i) => {
+        let posClass = '';
+        if (i < 4) posClass = 'fb-pos-top3';
+        else if (i >= group.length - 3) posClass = 'fb-pos-drop';
+        return `<tr>
+            <td class="${posClass}">${t.rank}</td>
+            <td><img src="${t.team.logo}" width="18" style="vertical-align:middle;margin-right:4px">${t.team.name}</td>
+            <td>${t.all.played}</td>
+            <td>${t.all.win}</td>
+            <td>${t.all.draw}</td>
+            <td>${t.all.lose}</td>
+            <td>${t.all.goals.for}</td>
+            <td>${t.all.goals.against}</td>
+            <td><strong>${t.points}</strong></td>
+            <td style="font-size:10px">${t.form || ''}</td>
+        </tr>`;
+    }).join('');
+    fbStandingsList.innerHTML = `
+    <table>
+        <thead><tr><th>#</th><th>Equipo</th><th>J</th><th>G</th><th>E</th><th>P</th><th>GF</th><th>GC</th><th>Pts</th><th>Forma</th></tr></thead>
+        <tbody>${rows}</tbody>
+    </table>`;
+}
+
+function renderTopScorers(data) {
+    if (data.error) { fbTopScorersList.innerHTML = `<p class="fb-hint">⚠️ ${data.error}</p>`; return; }
+    const players = data.response || [];
+    if (!players.length) { fbTopScorersList.innerHTML = '<p class="fb-hint">Sin datos</p>'; return; }
+    fbTopScorersList.innerHTML = players.slice(0, 20).map((p, i) => `
+        <div class="fb-scorer-card">
+            <div class="fb-scorer-rank">${i + 1}</div>
+            <img src="${p.player.photo}" width="36" height="36" style="border-radius:50%;object-fit:cover" onerror="this.style.display='none'">
+            <div class="fb-scorer-info">
+                <div class="fb-scorer-name">${p.player.name}</div>
+                <div class="fb-scorer-team">${(p.statistics[0] || {}).team?.name || ''}</div>
+            </div>
+            <div class="fb-scorer-goals">${(p.statistics[0] || {}).goals?.total || 0} ⚽</div>
+        </div>`).join('');
+}
+
+function renderTeamSearch(data) {
+    if (data.error) { fbSearchResults.innerHTML = `<p class="fb-hint">⚠️ ${data.error}</p>`; return; }
+    const teams = data.response || [];
+    if (!teams.length) { fbSearchResults.innerHTML = '<p class="fb-hint">No se encontraron equipos</p>'; return; }
+    fbSearchResults.innerHTML = teams.slice(0, 10).map(t => `
+        <div class="fb-team-result-card">
+            <img src="${t.team.logo}" onerror="this.style.display='none'">
+            <div>
+                <div class="fb-team-result-name">${t.team.name}</div>
+                <div class="fb-team-result-country">📍 ${t.team.country || ''} · ID: ${t.team.id}</div>
+            </div>
+        </div>`).join('');
+}
+
+function renderPrediction(data) {
+    if (data.error) { fbPredictionResult.innerHTML = `<p class="fb-hint">⚠️ ${data.error}</p>`; return; }
+    const pred = (data.response || [])[0];
+    if (!pred) { fbPredictionResult.innerHTML = '<p class="fb-hint">Sin predicción disponible</p>'; return; }
+    const p = pred.predictions;
+    const teams = pred.teams;
+    const home = teams?.home;
+    const away = teams?.away;
+    fbPredictionResult.innerHTML = `
+        <div class="fb-prediction-card">
+            <div style="font-size:12px;color:var(--text-muted);margin-bottom:6px">
+                ${home?.name || ''} vs ${away?.name || ''}
+            </div>
+            <div class="fb-predict-advice">🎯 ${p.advice || 'Sin consejo'}</div>
+            <div style="font-size:12px;color:var(--text-muted)">Resultado más probable: <strong style="color:var(--text-color)">${p.winner?.name || 'No definido'}</strong></div>
+            <div class="fb-predict-percent">
+                <div class="fb-percent-item">Local<span>${p.percent?.home || '-'}</span></div>
+                <div class="fb-percent-item">Empate<span>${p.percent?.draw || '-'}</span></div>
+                <div class="fb-percent-item">Visitante<span>${p.percent?.away || '-'}</span></div>
+            </div>
+            ${p.goals ? `<div style="font-size:12px;color:var(--text-muted);margin-top:8px">Goles esperados: Local <strong>${p.goals.home}</strong> · Visitante <strong>${p.goals.away}</strong></div>` : ''}
+        </div>`;
+}
+
+// ── FIN FOOTBALL ─────────────────────────────────────────────────────────────
