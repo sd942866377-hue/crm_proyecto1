@@ -9,7 +9,6 @@ from telebot.types import ReplyKeyboardMarkup, KeyboardButton, WebAppInfo
 
 # Importar helper de base de datos
 import database
-import football_api as fb
 
 # 1. Inicializar la base de datos SQLite con la tabla base_rpmkt
 database.init_db()
@@ -104,76 +103,6 @@ def listar_clientes():
         print(f"Error al consultar base_rpmkt: {e}")
         return jsonify({"error": f"Error al realizar la consulta: {str(e)}"}), 500
 
-
-# ── FOOTBALL API ROUTES ──────────────────────────────────────────────────────
-
-@app.route('/api/football/live')
-def football_live():
-    return jsonify(fb.get_live_scores())
-
-@app.route('/api/football/fixtures')
-def football_fixtures():
-    league = request.args.get('league', '39')   # 39 = Premier League por defecto
-    season = request.args.get('season', '2024')
-    next_n = request.args.get('next', '10')
-    return jsonify(fb.get_fixtures(league, season, next_n))
-
-@app.route('/api/football/standings')
-def football_standings():
-    league = request.args.get('league', '39')
-    season = request.args.get('season', '2024')
-    return jsonify(fb.get_standings(league, season))
-
-@app.route('/api/football/predictions/<int:fixture_id>')
-def football_predictions(fixture_id):
-    return jsonify(fb.get_predictions(fixture_id))
-
-@app.route('/api/football/odds/<int:fixture_id>')
-def football_odds(fixture_id):
-    bookmaker = request.args.get('bookmaker')
-    return jsonify(fb.get_odds(fixture_id, bookmaker))
-
-@app.route('/api/football/team/stats')
-def football_team_stats():
-    team = request.args.get('team')
-    league = request.args.get('league', '39')
-    season = request.args.get('season', '2024')
-    if not team:
-        return jsonify({"error": "Parámetro 'team' requerido"}), 400
-    return jsonify(fb.get_team_stats(team, league, season))
-
-@app.route('/api/football/topscorers')
-def football_topscorers():
-    league = request.args.get('league', '39')
-    season = request.args.get('season', '2024')
-    return jsonify(fb.get_top_scorers(league, season))
-
-@app.route('/api/football/search/team')
-def football_search_team():
-    name = request.args.get('name', '')
-    if not name:
-        return jsonify({"error": "Parámetro 'name' requerido"}), 400
-    return jsonify(fb.search_team(name))
-
-@app.route('/api/football/leagues')
-def football_leagues():
-    country = request.args.get('country')
-    return jsonify(fb.get_leagues(country))
-
-@app.route('/api/football/fixture/stats/<int:fixture_id>')
-def football_fixture_stats(fixture_id):
-    return jsonify(fb.get_fixture_stats(fixture_id))
-
-@app.route('/api/football/h2h')
-def football_h2h():
-    team1 = request.args.get('team1')
-    team2 = request.args.get('team2')
-    last = request.args.get('last', 5)
-    if not team1 or not team2:
-        return jsonify({"error": "Parámetros 'team1' y 'team2' requeridos"}), 400
-    return jsonify(fb.get_head_to_head(team1, team2, last))
-
-# ── FIN FOOTBALL API ROUTES ───────────────────────────────────────────────────
 
 # 3. Configuración del Bot de Telegram
 TOKEN = os.environ.get('TELEGRAM_BOT_TOKEN', '7234567890:ABCdefGHIjklMNOpqrSTUvwxYZ123456789')

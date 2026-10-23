@@ -35,10 +35,6 @@
                 <span class="material-icons">list_alt</span>
                 <span>Ver Listas</span>
             </button>
-            <button class="tab-btn" id="tabFutbol">
-                <span class="material-icons">sports_soccer</span>
-                <span>Fútbol</span>
-            </button>
         </div>
 
         <!-- Pestaña 1: Registro -->
@@ -207,101 +203,7 @@
                 </button>
             </div>
         </div>
-
-        <!-- Pestaña 3: Fútbol & Apuestas -->
-        <div class="tab-content" id="contentFutbol">
-
-            <!-- Sub-nav de secciones -->
-            <div class="football-subnav">
-                <button class="fb-nav-btn active" data-section="live">🔴 En Vivo</button>
-                <button class="fb-nav-btn" data-section="fixtures">📅 Próximos</button>
-                <button class="fb-nav-btn" data-section="standings">🏆 Tabla</button>
-                <button class="fb-nav-btn" data-section="topscorers">⚽ Goleadores</button>
-                <button class="fb-nav-btn" data-section="search">🔍 Buscar</button>
-            </div>
-
-            <!-- Selector de Liga / Temporada -->
-            <div class="football-filters">
-                <div class="fb-filter-group">
-                    <label>Liga</label>
-                    <select id="fbLeague">
-                        <option value="39">🏴󠁧󠁢󠁥󠁮󠁧󠁿 Premier League</option>
-                        <option value="140">🇪🇸 La Liga</option>
-                        <option value="135">🇮🇹 Serie A</option>
-                        <option value="78">🇩🇪 Bundesliga</option>
-                        <option value="61">🇫🇷 Ligue 1</option>
-                        <option value="94">🇵🇹 Primeira Liga</option>
-                        <option value="253">🇺🇸 MLS</option>
-                        <option value="128">🇦🇷 Liga Profesional</option>
-                        <option value="71">🇧🇷 Brasileirão</option>
-                        <option value="188">🇵🇪 Liga 1 Perú</option>
-                    </select>
-                </div>
-                <div class="fb-filter-group">
-                    <label>Temporada</label>
-                    <select id="fbSeason">
-                        <option value="2024" selected>2024</option>
-                        <option value="2023">2023</option>
-                        <option value="2022">2022</option>
-                    </select>
-                </div>
-                <button class="fb-load-btn" id="fbLoadBtn">Cargar</button>
-            </div>
-
-            <!-- Sección: En Vivo -->
-            <div class="fb-section active" id="fbSectionLive">
-                <div class="fb-section-header">
-                    <span class="live-dot"></span> Partidos en Vivo
-                    <button class="fb-refresh-btn" id="fbRefreshLive">↻</button>
-                </div>
-                <div id="fbLiveList" class="fb-list">
-                    <p class="fb-hint">Presiona "Cargar" para ver partidos en vivo</p>
-                </div>
-            </div>
-
-            <!-- Sección: Próximos Partidos -->
-            <div class="fb-section" id="fbSectionFixtures">
-                <div class="fb-section-header">📅 Próximos Partidos</div>
-                <div id="fbFixturesList" class="fb-list">
-                    <p class="fb-hint">Selecciona liga y presiona "Cargar"</p>
-                </div>
-            </div>
-
-            <!-- Sección: Tabla de Posiciones -->
-            <div class="fb-section" id="fbSectionStandings">
-                <div class="fb-section-header">🏆 Tabla de Posiciones</div>
-                <div id="fbStandingsList" class="fb-standings-table"></div>
-            </div>
-
-            <!-- Sección: Goleadores -->
-            <div class="fb-section" id="fbSectionTopscorers">
-                <div class="fb-section-header">⚽ Máximos Goleadores</div>
-                <div id="fbTopScorersList" class="fb-list"></div>
-            </div>
-
-            <!-- Sección: Buscar Equipo -->
-            <div class="fb-section" id="fbSectionSearch">
-                <div class="fb-section-header">🔍 Buscar Equipo / Partido</div>
-                <div class="fb-search-box">
-                    <input type="text" id="fbTeamSearch" placeholder="Ej. Real Madrid, Liverpool...">
-                    <button id="fbSearchBtn">Buscar</button>
-                </div>
-                <div id="fbSearchResults" class="fb-list"></div>
-
-                <!-- Predicciones por ID de partido -->
-                <div class="fb-predict-box">
-                    <p class="fb-hint" style="margin-bottom:8px">Predicción / Odds por ID de partido:</p>
-                    <div class="fb-search-box">
-                        <input type="number" id="fbFixtureId" placeholder="ID del partido">
-                        <button id="fbPredictBtn">Predecir</button>
-                    </div>
-                    <div id="fbPredictionResult" class="fb-list"></div>
-                </div>
-            </div>
-
-        </div><!-- fin contentFutbol -->
-
-    </div><!-- fin .container -->
+    </div>
 
     <!-- Contenedor global de Toasts -->
     <div id="toast-container"></div>
