@@ -1,0 +1,41 @@
+feature,area,priority,original,clone,notes
+Browse today's fixtures by league,Discovery,must,yes,no,Date strip + grouped match list
+Filter live matches,Discovery,must,yes,no,Live badge filter on S01
+Filter high-confidence matches,Discovery,should,yes,no,Confidence threshold filter
+Search leagues,Discovery,should,yes,no,S05 league search
+Pre-match win/draw/win probabilities,AI Analysis,must,yes,no,Core value prop — 3-way probability bar
+Pre-match goals over/under,AI Analysis,must,yes,no,2-way probability toggle
+Pre-match BTTS (both teams to score),AI Analysis,must,yes,no,2-way BTTS toggle
+Pre-match HT/FT market,AI Analysis,should,yes,no,6-outcome grid
+Pre-match corners prediction,AI Analysis,should,yes,no,Over/Under corners
+AI confidence score per prediction,AI Analysis,must,yes,no,0-100% badge on every prediction
+AI top pick chip,AI Analysis,must,yes,no,Single highlighted recommended pick
+Pre-match xG projection,Statistics,should,yes,no,Projected xG comparison bar
+Team form strip (last 5),Statistics,must,yes,no,W/D/L coloured dots
+Head-to-head record,Statistics,must,yes,no,Mini-table of last N meetings
+League standings row,Statistics,should,yes,no,Position + pts snapshot for context
+Live win probabilities (minute-by-minute),Live,should,yes,no,Requires live data feed
+Live score and minute ticker,Live,must,yes,no,Basic scoreboard
+Live xG accumulation,Live,could,yes,no,Requires premium data feed
+Live shot quality metric,Live,could,yes,no,Requires premium data feed
+Live momentum indicator,Live,could,yes,no,Derived from shot/possession data
+Live match events (goals cards subs),Live,should,yes,no,Event log
+AI Combo — ready-made multi-pick,AI Combo,should,yes,no,Daily generated combo selections
+AI Combo confidence,AI Combo,should,yes,no,Combined confidence score
+Follow leagues,Favorites,must,yes,no,Follow toggle + storage
+Follow specific matches,Favorites,should,yes,no,Per-match bell icon
+Push notifications on match end,Alerts,should,yes,no,FCM/APNs integration
+Community prediction posts,Community,should,yes,no,Social feed with match picks
+Like / comment on posts,Community,could,yes,no,Basic engagement
+Follow other users,Community,could,yes,no,Social graph
+Weekly prediction challenge,Community,could,yes,no,Weekly leaderboard
+User profile with win %,Community,should,yes,no,Stats aggregated from posts
+76-language localisation,i18n,could,yes,no,Start with 5-10 languages for v1
+Dark theme,UI,should,yes,no,App appears dark by default
+Premium subscription (extra markets),Monetisation,could,yes,no,In-app purchase via store billing
+Ad-supported free tier,Monetisation,must,yes,no,Banner/interstitial ads
+Actual ML prediction model,AI Backend,skip,yes,no,Proprietary — use statistical model or licensed API
+Real-time licensed data feed (Opta/Sportradar),Data,skip,yes,no,Licensed — budget for API-Football or Sportmonks
+Historical dataset for model training,Data,skip,yes,no,Licensed historical data required
+76 language professional translations,i18n,skip,yes,no,Use 5-10 languages and machine translation
+iOS + Android native apps,Platform,skip,yes,no,Use React Native or Flutter instead
