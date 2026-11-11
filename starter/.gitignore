@@ -1,0 +1,40 @@
+node_modules/
+.wrangler/
+.dev.vars
+.dev.vars.local
+*.log
+.DS_Store
+dist/
+.playwright-cli/
+.bot-setup.json
+.bot-state.json
+.bot-version
+.env*
+!.env.example
+
+# claude-mem auto-generated per-dir activity logs (not part of template)
+CLAUDE.md
+**/CLAUDE.md
+
+# build artifacts
+# NOTE: scripts/kb-fixtures.json is imported by the Worker at build time
+# (src/kb/reindex.ts) so it MUST be tracked. Default content is `[]`;
+# regenerate from member/kb/ with `pnpm kb:reindex`.
+docs/_recon-digest.json
+.mc-credentials.local
+.dashboard-credentials.local
+
+# Reporte de Calidad (cliente-misterioso) — artefactos locales
+test/eval/last-run.json
+reporte-calidad.html
+
+# Backups de prompt de miembros (locales, NO van al template → a todos los bots)
+member/prompt-backup-*.txt
+
+# Backups de settings en vivo (contienen llm_api_key / owner_session) — NUNCA commitear
+member/backup-settings-*.json
+
+# KB y migraciones de cada miembro (locales, específicos de SU bot → NO al template)
+member/kb/*
+!member/kb/.gitkeep
+member/migracion-*/

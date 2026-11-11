@@ -1,0 +1,162 @@
+# El CLI (forjabot init) resuelve starter y {{D1_DATABASE_ID}} al instalar.
+# Los valores de abajo YA son válidos para wrangler tal cual (arrancan sin editar):
+# el worker name lo re-nombra el CLI, y el bucket usa un nombre canónico fijo —
+# así ningún placeholder rompe `wrangler login` ni el parseo del toml.
+# DO NOT commit member-specific values to git.
+
+name = "forja-starter-ef5fa0"
+main = "src/index.ts"
+compatibility_date = "2026-05-01"
+compatibility_flags = ["nodejs_compat"]
+
+# ── DOMINIO PROPIO del panel (white-label, OPCIONAL) — va AQUÍ, a nivel raíz
+# (NO dentro de [vars]). Requisito: el dominio está en la cuenta de Cloudflare
+# donde corre este bot; Cloudflare crea el DNS y el certificado solos al deploy.
+# workers_dev = true es OBLIGATORIO: sin él, wrangler APAGA la URL *.workers.dev
+# en cuanto hay routes, y esa URL es la de los webhooks de los canales.
+# Descomenta las dos líneas, pon tu subdominio y luego fija DASHBOARD_BASE_URL
+# (abajo, en [vars]). Skill: /whitelabel (modo DOMINIO).
+# workers_dev = true
+# routes = [{ pattern = "panel.tunegocio.com", custom_domain = true }]
+
+[ai]
+binding = "AI"
+
+# ── Correo del panel (OPCIONAL) — invitaciones, recuperar contraseña, avisos al
+# equipo. Cloudflare Email Service: nativo, sin llaves. Requiere (1) un dominio
+# en Cloudflare DNS onboardeado en Email Service (DKIM/DMARC automáticos) y
+# (2) Workers Paid ($5/mes; 3,000 correos/mes incluidos) para mandar a cualquier
+# destinatario — en Workers Free solo llega a "direcciones verificadas" de tu
+# cuenta. Sin este bloque el panel cae a RESEND_API_KEY, y sin ambos degrada:
+# el link de invitación/recuperación se muestra para que lo mandes tú.
+# Descomenta y pon tu remitente en EMAIL_FROM (secret o var):
+# [[send_email]]
+# name = "EMAIL"
+
+[[durable_objects.bindings]]
+name = "AGENT"
+class_name = "SupportAgent"
+
+[[migrations]]
+tag = "v1"
+new_sqlite_classes = ["SupportAgent"]
+
+# D1 + Vectorize: el CLI (stampBotConfig) reescribe database_name/index_name a
+# nombres POR BOT (horizontes_bot_<slug>_db / _kb) al instalar, para que dos bots
+# en la misma cuenta de Cloudflare NUNCA compartan datos (settings/persona).
+[[d1_databases]]
+binding = "DB"
+database_name = "horizontes_bot_starter_ef5fa0_db"
+database_id = "{{D1_DATABASE_ID}}"  # crea tu D1 (wrangler d1 create horizontes_bot_starter_ef5fa0_db) y pega aquí su id
+
+[[vectorize]]
+binding = "KB"
+index_name = "horizontes_bot_starter_ef5fa0_kb"
+
+# R2 (OPCIONAL) — solo para lead magnets / catálogo con archivos. R2 pide tarjeta
+# en Cloudflare (aunque el uso sea $0), así que va COMENTADO por default: el bot
+# corre sin él (hay guards `if (!env.CATALOG)` en src/). Para activarlo: descomenta
+# el bloque y crea el bucket → `wrangler r2 bucket create horizontes-bot-catalog`.
+# [[r2_buckets]]
+# binding = "CATALOG"
+# bucket_name = "horizontes-bot-catalog"
+
+# Bóveda (superpoder Forja+) = OPCIONAL. Guarda las imágenes/documentos que mandan
+# tus clientes para verlos en el panel. El skill /boveda descomenta esto y crea el
+# bucket → `wrangler r2 bucket create <tu-bot>-media`.
+# [[r2_buckets]]
+# binding = "MEDIA"
+# bucket_name = "horizontes-bot-media"
+
+[vars]
+BOT_NAME = "Asistente"
+BUSINESS_NAME = "{{BUSINESS_NAME}}"
+BOT_LANGUAGE = "es-MX"
+# BOT_TIMEZONE = "America/Mexico_City"  # zona horaria para resolver fechas ("mañana", "el jueves 27"). Sin ella cae a CALCOM_TIMEZONE y luego a CDMX. Cámbiala si tu negocio no está en el centro de México (ej. "America/Bogota", "Europe/Madrid").
+BOT_TIER = "free"  # 'free' | 'pro'
+LLM_PROVIDER = "anthropic"
+# BLINDAJE_MODE = "full"  # estrictez del Blindaje anti-invento (Pro): 'off' | 'negaciones' | 'full'. Sin línea = 'full' (verificación completa; el prompt ya trata tool/KB/listados/cálculos como respaldo y solo bloquea contradicciones o datos sin fuente). 'negaciones' = confía en TODO dato positivo y solo vigila negaciones — para negocios que listan inventario en vivo. 'off' = apagado.
+# ── White-label del panel (Modo Agencia): TU marca o la del cliente. Opcionales;
+#    sin ellas el panel usa el tema Forja. Un valor inválido cae al default. Las
+#    configura el skill /whitelabel (entrevista + valida + aplica). Ver src/admin/branding.ts.
+# BRAND_NAME = "Agencia Nova"
+# BRAND_LOGO_URL = "/brand/logo"   # self-hosted en el bot (sin hosting externo) o una URL https propia
+# BRAND_ACCENT = "#5b7cfa"
+# BRAND_ACCENT_2 = "#8aa5ff"
+# BRAND_FONT = "Poppins"   # Inter|Poppins|Montserrat|Roboto|Lato|Nunito|Work Sans|Manrope|DM Sans|Sora|Outfit
+# BRAND_STYLE = "onyx"   # nimbus | onyx | terra — estilo del panel (vacío = tema Forja). BRAND_ACCENT y el logo van ENCIMA.
+# BRAND_HIDE_FORJA = "on"
+#
+# ── DOMINIO PROPIO del panel: el bloque `workers_dev = true` + `routes` va ARRIBA,
+# a nivel raíz del archivo (junto a compatibility_flags), NO aquí en [vars].
+# Después fija DASHBOARD_BASE_URL = "" (los links de
+# invitación y recuperación lo usan). Skill: /whitelabel (modo DOMINIO).
+# HIDDEN_TABS = "costs,config"   # tabs que este panel OCULTA (CSV de ids: conversations|boveda|leads|cobros|tickets|reviews|campanas|plantillas|agente|kb|mejoras|conexiones|config|insights|stats|costs). "overview" nunca se oculta. Skill /ocultar-tabs.
+# DEMO_MODE = "on"   # chat web público en /demo para enseñarle el bot a un prospecto
+#                     (Modo Agencia · skill /demo). Déjalo APAGADO en un bot real:
+#                     es acceso sin autenticar a tu llave de IA.
+BOT_NICHE = "generico"  # el CLI lo reescribe al giro instalado (restaurante, cafeteria…)
+BUFFER_SECONDS = "15"
+# Se llena solo: `forjabot pair` escribe aquí la URL real del worker tras el deploy;
+# y en runtime el bot cae a su propio origin si está vacío (sin edición manual).
+DASHBOARD_BASE_URL = ""
+
+# Si TODAS las respuestas de tu bot fallan con 403 "Request not allowed" hacia
+# api.anthropic.com (típico cuando el proveedor del canal manda sus webhooks
+# desde Asia, p.ej. YCloud, y el agente queda corriendo allá): fija la región
+# del agente a Norteamérica con la línea de abajo y redeploy. Misma API key,
+# misma cuenta de Anthropic — solo cambia dónde corre el agente. Guía completa:
+# skill conectar-mi-ia.md → "Error 403 Request not allowed".
+# AGENT_LOCATION_HINT = "enam"
+# Plan B del mismo 403 (si el hint no bastara): rutear Anthropic por un AI
+# Gateway gratuito de TU cuenta de Cloudflare (dashboard → AI → AI Gateway).
+# Debe terminar en ".../anthropic/v1" (el bot le anexa "/messages").
+# ANTHROPIC_BASE_URL = "https://gateway.ai.cloudflare.com/v1/<account_id>/<gateway>/anthropic/v1"
+
+# Canal web — el chat en tu propia página. Pon aquí TUS dominios y el canal se
+# enciende; sin esta línea no existe. Es la seguridad del canal: el chat solo
+# responde a estos dominios, para que nadie copie el <script> y use tu llave de
+# IA desde otra web. Los subdominios entran solos (con "minegocio.com" también
+# vale "tienda.minegocio.com"). Guía completa:
+# skill/references/channel-setup-guides/sitio-web.md
+# WEB_SITES = "minegocio.com, www.minegocio.com"
+
+# Secrets (set with `wrangler secret put <NAME>` — never commit values):
+#   ANTHROPIC_API_KEY          required — Claude API
+#   DASHBOARD_PASSWORD         required (Pro) — HTTP Basic Auth for /admin (user: admin)
+#   KB_REINDEX_TOKEN           required — guards POST /kb/reindex (header: X-Reindex-Token)
+#                              set with: wrangler secret put KB_REINDEX_TOKEN
+#   TELEGRAM_BOT_TOKEN         per-channel — Telegram bot
+#   MANYCHAT_API_KEY           per-channel — ManyChat (Pro)
+#   TWILIO_ACCOUNT_SID / TWILIO_AUTH_TOKEN / TWILIO_WA_FROM   per-channel — Twilio WhatsApp (Pro)
+#   KAPSO_API_KEY / KAPSO_PHONE_NUMBER_ID   per-channel — WhatsApp por Kapso con COEXISTENCIA (Pro)
+#                              tu MISMO número, sin perder la app de WhatsApp Business. Webhook → /webhooks/kapso
+#   KAPSO_WEBHOOK_SECRET       firma del webhook de Kapso (X-Webhook-Signature). set con: wrangler secret put KAPSO_WEBHOOK_SECRET
+#   YCLOUD_API_KEY / YCLOUD_WA_FROM   per-channel — WhatsApp por YCloud (BSP oficial, COEXISTENCIA, zero-markup) (Pro)
+#                              YCLOUD_WA_FROM = tu número en E.164. Webhook → /webhooks/ycloud
+#   YCLOUD_WEBHOOK_SECRET      firma del webhook de YCloud (YCloud-Signature). set con: wrangler secret put YCLOUD_WEBHOOK_SECRET
+#   ZERNIO_API_KEY             per-channel — proveedor UNIFICADO (IG/Messenger/WhatsApp/Telegram/X/…). Bearer del dashboard de zernio.com. Webhook → /webhooks/zernio
+#   ZERNIO_WEBHOOK_SECRET      firma del webhook de Zernio (X-Zernio-Signature). set con: wrangler secret put ZERNIO_WEBHOOK_SECRET
+#   CALCOM_API_KEY             optional — scheduleAppointment (Pro)
+#   GOOGLE_SERVICE_ACCOUNT_JSON  optional — Sheets export (Pro)
+#   RESEND_API_KEY             optional — handoff email
+#   OWNER_EMAIL                handoff email recipient
+#   OWNER_TELEGRAM_CHAT_ID     handoff notification (default channel — owner /start's the bot)
+#   OWNER_WA_NUMBER            handoff WhatsApp DM recipient (Pro)
+#   TWILIO_HANDOFF_CONTENT_SID approved WhatsApp template SID for the handoff DM (Pro)
+#   CONTROL_PLANE_TOKEN        optional (secret) — Bearer the hosted control plane presents to call /api/*
+#                              set by `forjabot pair` via: wrangler secret put CONTROL_PLANE_TOKEN
+#   CONTROL_PLANE_URL          optional (var) — base URL of the control plane (future reports / license check)
+#                              set by `forjabot pair`
+
+[build]
+# Preflight: bloquea el deploy/dev si quedan placeholders {{...}} sin resolver en
+# wrangler.toml (BOT_NAME, BUSINESS_NAME, D1_DATABASE_ID…). Falla claro y temprano,
+# antes de que wrangler tire un error críptico. Ver scripts/forja-preflight.mjs.
+command = "node scripts/forja-preflight.mjs"
+
+[triggers]
+crons = ["0 3 * * *"]  # daily 3am UTC: purge old messages
+
+# DASHBOARD_PASSWORD  (secret) — HTTP Basic Auth password for the admin dashboard; username is always "admin".
+# Set it with: wrangler secret put DASHBOARD_PASSWORD

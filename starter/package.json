@@ -1,0 +1,42 @@
+{
+  "name": "horizontes-bot-template",
+  "version": "1.0.77",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "wrangler dev",
+    "version:write": "node -e \"require('fs').writeFileSync('.bot-version', require('./package.json').version + '\\n')\"",
+    "deploy-check": "tsx scripts/deploy-check.ts",
+    "predeploy": "pnpm deploy-check && pnpm version:write",
+    "deploy": "wrangler deploy",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "db:apply": "wrangler d1 execute DB --file=src/db/schema.sql",
+    "db:apply:remote": "wrangler d1 execute DB --file=src/db/schema.sql --remote",
+    "kb:reindex": "tsx scripts/generate-fixtures.ts",
+    "eval": "tsx scripts/eval-bot-live.ts",
+    "eval:report": "tsx scripts/quality-report.ts"
+  },
+  "dependencies": {
+    "@ai-sdk/anthropic": "^4.0.0",
+    "@ai-sdk/google": "^4.0.0",
+    "@ai-sdk/openai": "^4.0.0",
+    "@ai-sdk/xai": "^4.0.0",
+    "@anthropic-ai/sdk": "^0.90.0",
+    "agents": "^0.1.0",
+    "ai": "^7.0.0",
+    "hono": "^4.10.0",
+    "resend": "^6.12.0",
+    "zod": "^4.3.6"
+  },
+  "devDependencies": {
+    "@cloudflare/workers-types": "latest",
+    "@types/node": "latest",
+    "miniflare": "latest",
+    "tsx": "latest",
+    "typescript": "^5",
+    "vitest": "latest",
+    "wrangler": "latest"
+  }
+}
