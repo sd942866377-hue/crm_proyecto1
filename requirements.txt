@@ -1,0 +1,6 @@
+flask
+pyTelegramBotAPI
+composio-core
+composio-anthropic
+anthropic
+python-dotenv

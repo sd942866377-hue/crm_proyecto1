@@ -4,11 +4,16 @@ import os
 import math
 import threading
 from flask import Flask, request, jsonify, send_from_directory
+from dotenv import load_dotenv
 import telebot
 from telebot.types import ReplyKeyboardMarkup, KeyboardButton, WebAppInfo
 
 # Importar helper de base de datos
 import database
+import composio_agent
+
+# Cargar variables de entorno
+load_dotenv()
 
 # 1. Inicializar la base de datos SQLite con la tabla base_rpmkt
 database.init_db()
@@ -104,7 +109,85 @@ def listar_clientes():
         return jsonify({"error": f"Error al realizar la consulta: {str(e)}"}), 500
 
 
-# 3. Configuración del Bot de Telegram
+# 3. Endpoints de Composio (IA + integraciones externas)
+
+@app.route('/api/composio/email', methods=['POST'])
+def composio_email():
+    """Envía un email a un cliente via Gmail usando el agente Composio."""
+    data = request.get_json()
+    if not data:
+        return jsonify({"error": "Se requieren datos JSON."}), 400
+
+    nombre = data.get('nombre', '')
+    email = data.get('email', '')
+    asunto = data.get('asunto', '')
+    mensaje = data.get('mensaje', '')
+
+    if not nombre or not email or not asunto or not mensaje:
+        return jsonify({"error": "Campos requeridos: nombre, email, asunto, mensaje."}), 400
+
+    try:
+        resultado = composio_agent.enviar_email_cliente(nombre, email, asunto, mensaje)
+        return jsonify({"status": "ok", "resultado": resultado}), 200
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
+@app.route('/api/composio/sheets', methods=['POST'])
+def composio_sheets():
+    """Exporta todos los clientes a Google Sheets usando el agente Composio."""
+    data = request.get_json() or {}
+    nombre_hoja = data.get('nombre_hoja', 'CRM Seguridad')
+
+    try:
+        clientes, _ = database.get_clientes(estado=None, page=1, per_page=100)
+        resultado = composio_agent.exportar_clientes_sheets(clientes, nombre_hoja)
+        return jsonify({"status": "ok", "resultado": resultado}), 200
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
+@app.route('/api/composio/calendario', methods=['POST'])
+def composio_calendario():
+    """Agenda una cita con un cliente en Google Calendar."""
+    data = request.get_json()
+    if not data:
+        return jsonify({"error": "Se requieren datos JSON."}), 400
+
+    nombre = data.get('nombre', '')
+    telefono = data.get('telefono', '')
+    fecha_hora = data.get('fecha_hora', '')
+    descripcion = data.get('descripcion', '')
+
+    if not nombre or not fecha_hora:
+        return jsonify({"error": "Campos requeridos: nombre, fecha_hora."}), 400
+
+    try:
+        resultado = composio_agent.agendar_cita(nombre, telefono, fecha_hora, descripcion)
+        return jsonify({"status": "ok", "resultado": resultado}), 200
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
+@app.route('/api/composio/consulta', methods=['POST'])
+def composio_consulta():
+    """Consulta libre al agente IA con acceso a Gmail, Sheets y Calendar."""
+    data = request.get_json()
+    if not data:
+        return jsonify({"error": "Se requieren datos JSON."}), 400
+
+    pregunta = data.get('pregunta', '')
+    if not pregunta:
+        return jsonify({"error": "El campo 'pregunta' es obligatorio."}), 400
+
+    try:
+        respuesta = composio_agent.consulta_libre(pregunta)
+        return jsonify({"status": "ok", "respuesta": respuesta}), 200
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
+# 4. Configuración del Bot de Telegram
 TOKEN = os.environ.get('TELEGRAM_BOT_TOKEN', '7234567890:ABCdefGHIjklMNOpqrSTUvwxYZ123456789')
 bot = telebot.TeleBot(TOKEN)
 
@@ -138,7 +221,7 @@ def run_telegram_bot():
         print(f"[Error en Bot] El bot no pudo arrancar: {e}")
 
 
-# 4. Inicializar Aplicación
+# 5. Inicializar Aplicación
 if __name__ == '__main__':
     bot_thread = threading.Thread(target=run_telegram_bot, daemon=True)
     bot_thread.start()
