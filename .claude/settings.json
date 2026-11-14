@@ -9,7 +9,7 @@
     "composio": {
       "url": "https://connect.composio.dev/mcp",
       "headers": {
-        "x-api-key": "ck_Zgbl4gkuHrBdNN4NkOGf"
+        "Authorization": "Bearer ck_Zgbl4gkuHrBdNN4NkOGf"
       }
     }
   }
