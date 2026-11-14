@@ -22,8 +22,7 @@ TERMINOS_BUSQUEDA = [
 def buscar_tiktok(query: str) -> list:
     url = "https://api.hasdata.com/scrape/tiktok/search"
     params = urllib.parse.urlencode({
-        "query": query,
-        "type": "video",
+        "keyword": query,
         "count": 5
     })
     full_url = f"{url}?{params}"
@@ -53,14 +52,14 @@ def buscar_zonas_peligrosas():
             print(f"  Error: {resultado['error']}")
             continue
 
-        videos = resultado if isinstance(resultado, list) else resultado.get("data", resultado.get("videos", []))
+        videos = resultado.get("videos", [])
 
         for video in videos[:3]:
-            titulo = video.get("title") or video.get("desc", "Sin título")
+            titulo = video.get("description", "Sin título")
             autor = video.get("author", {})
             nombre_autor = autor.get("nickname", "") if isinstance(autor, dict) else str(autor)
-            likes = video.get("stats", {}).get("diggCount", video.get("diggCount", 0))
-            url_video = video.get("url", video.get("shareUrl", ""))
+            likes = video.get("likes", 0)
+            url_video = video.get("url", "")
 
             print(f"  - {titulo[:80]}")
             print(f"    Autor: @{nombre_autor} | Likes: {likes}")
