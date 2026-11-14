@@ -5,6 +5,9 @@
       "headers": {
         "x-api-key": "hd_5f0906f2863b4d90e6ca49d21f55125eab6c5aa7a30f7838"
       }
+    },
+    "composio": {
+      "url": "https://mcp.composio.dev/composio/mcp?apiKey=ck_Zgbl4gkuHrBdNN4NkOGf"
     }
   }
 }
