@@ -1,0 +1,11 @@
+{
+  "mcpServers": {
+    "hasdata-tiktok": {
+      "type": "http",
+      "url": "https://mcp.hasdata.com/mcp?apis=tiktok",
+      "headers": {
+        "x-api-key": "hd_5f0906f2863b4d90e6ca49d21f55125eab6c5aa7a30f7838"
+      }
+    }
+  }
+}
