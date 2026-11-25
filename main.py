@@ -109,6 +109,7 @@ def listar_clientes():
 AGENT_REACH_CHANNELS = ['github', 'youtube', 'web', 'bilibili', 'v2ex']
 AGENT_REACH_BIN = os.path.expanduser('~/.local/bin/agent-reach')
 
+@app.route('/s', methods=['GET'])
 @app.route('/api/search', methods=['GET'])
 def agent_reach_search():
     """Busca en internet usando Agent-Reach desde la WebApp móvil."""
