@@ -3,6 +3,8 @@
 import os
 import math
 import threading
+import subprocess
+import json as json_lib
 from flask import Flask, request, jsonify, send_from_directory
 import telebot
 from telebot.types import ReplyKeyboardMarkup, KeyboardButton, WebAppInfo
@@ -102,6 +104,45 @@ def listar_clientes():
     except Exception as e:
         print(f"Error al consultar base_rpmkt: {e}")
         return jsonify({"error": f"Error al realizar la consulta: {str(e)}"}), 500
+
+
+AGENT_REACH_CHANNELS = ['github', 'youtube', 'web', 'bilibili', 'v2ex']
+AGENT_REACH_BIN = os.path.expanduser('~/.local/bin/agent-reach')
+
+@app.route('/s', methods=['GET'])
+@app.route('/api/search', methods=['GET'])
+def agent_reach_search():
+    """Busca en internet usando Agent-Reach desde la WebApp móvil."""
+    query = request.args.get('q', '').strip()
+    channel = request.args.get('channel', 'web').strip().lower()
+
+    if not query:
+        return jsonify({"error": "El parámetro 'q' es requerido."}), 400
+    if channel not in AGENT_REACH_CHANNELS:
+        return jsonify({"error": f"Canal inválido. Opciones: {AGENT_REACH_CHANNELS}"}), 400
+
+    try:
+        result = subprocess.run(
+            [AGENT_REACH_BIN, channel, 'search', query],
+            capture_output=True, text=True, timeout=30
+        )
+        output = result.stdout.strip()
+        try:
+            data = json_lib.loads(output)
+        except Exception:
+            data = output
+        return jsonify({"channel": channel, "query": query, "results": data}), 200
+    except subprocess.TimeoutExpired:
+        return jsonify({"error": "Tiempo de búsqueda agotado (30s)."}), 504
+    except FileNotFoundError:
+        return jsonify({"error": "agent-reach no está instalado en el servidor."}), 503
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+@app.route('/api/search/channels', methods=['GET'])
+def agent_reach_channels():
+    """Lista los canales disponibles en Agent-Reach."""
+    return jsonify({"channels": AGENT_REACH_CHANNELS}), 200
 
 
 # 3. Configuración del Bot de Telegram
